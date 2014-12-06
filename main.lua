@@ -41,7 +41,7 @@ function reset()
         x = W/2,
         y = H/2,
         rot = 0,
-        w = 40,
+        w = 48,
         h = 32,
         v = 600,
         joystick = sticks[1]
@@ -55,7 +55,10 @@ function drawPlayer()
     love.graphics.rotate( player.rot )
 
     love.graphics.setColor( 255, 0, 0 )
-    love.graphics.polygon( "fill", -player.w/2, -player.h/2, player.w, 0, -player.w/2, player.h/2 )
+    love.graphics.polygon( "fill", -player.w/2, -player.h/2, player.w/2, 0, -player.w/2, player.h/2 )
+    if player.debugText ~= nil then
+        love.graphics.printf( player.debugText, -player.w/2, -player.h, player.w, "left", 0, love.window.getPixelScale(), love.window.getPixelScale() )
+    end
     love.graphics.pop()
 end
 
