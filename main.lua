@@ -1,4 +1,8 @@
+require "vector"
+require "player"
+
 DEAD_ZONE = 0.15
+MAX_PLAYER_VEL = 800
 
 -----------------
 -- Debug Stats --
@@ -30,74 +34,78 @@ end
 ----------------
 -- Game Logic --
 ----------------
-player = {}
-bullets = {}
+lasers = {}
 enemies = {}
 buffs = {}
 
 function reset()
-    local sticks = love.joystick.getJoysticks()
-    player = {
-        x = W/2,
-        y = H/2,
-        rot = 0,
-        w = 48,
-        h = 32,
-        v = 600,
-        joystick = sticks[1]
+    createPlayer()
+    lasers = {}
+end
+
+function keepOnScreen( o )
+    local originalx, originaly = o.x, o.y
+    local s = math.max( o.w, o.h )/2 + 4
+    o.x = math.min( o.x, W - s )
+    o.x = math.max( o.x, s )
+    o.y = math.min( o.y, H - s )
+    o.y = math.max( o.y, s )
+
+    return originalx == o.x and originaly == o.y
+end
+
+------------
+-- Lasers --
+------------
+function fireLaser( src )
+    local b = {
+        x = src.x,
+        y = src.y,
+        rot = src.rot,
+        w = 28,
+        h = 4,
+        v = 800
     }
 
+    table.insert( lasers, b )
 end
 
-function drawPlayer()
-    love.graphics.push()
-    love.graphics.translate( player.x, player.y )
-    love.graphics.rotate( player.rot )
+function drawLasers()
+    for _, l in pairs( lasers ) do
+        love.graphics.push()
+        love.graphics.translate( l.x, l.y )
+        love.graphics.rotate( l.rot )
 
-    love.graphics.setColor( 255, 0, 0 )
-    love.graphics.polygon( "fill", -player.w/2, -player.h/2, player.w/2, 0, -player.w/2, player.h/2 )
-    if player.debugText ~= nil then
-        love.graphics.printf( player.debugText, -player.w/2, -player.h, player.w, "left", 0, love.window.getPixelScale(), love.window.getPixelScale() )
+        love.graphics.setColor( 64, 255, 64 )
+        love.graphics.rectangle( "fill", -l.w/2, -l.h/2, l.w, l.h )
+        if l.debugText ~= nil then
+            love.graphics.printf( l.debugText, -l.w/2, -l.h, l.w, "left", 0, love.window.getPixelScale(), love.window.getPixelScale() )
+        end
+
+        love.graphics.pop()
     end
-    love.graphics.pop()
 end
 
-function updatePlayer( dt )
-    if player.joystick ~= nil then
-        -- Movement
-        local lx = player.joystick:getGamepadAxis( "leftx" )
-        local ly = player.joystick:getGamepadAxis( "lefty" )
-
-        if math.abs(lx) >= DEAD_ZONE then
-            player.x = player.x + lx * player.v * dt
-        end
-        if math.abs(ly) >= DEAD_ZONE then
-            player.y = player.y + ly * player.v * dt
-        end
-
-        -- Facing
-        local rx = player.joystick:getGamepadAxis( "rightx" )
-        local ry = player.joystick:getGamepadAxis( "righty" )
-
-        if math.abs(rx) >= DEAD_ZONE or math.abs(ry) >= DEAD_ZONE then
-            player.rot = -math.atan2( rx, ry ) + math.pi/2
+function updateLasers( dt )
+    for _, l in pairs( lasers ) do
+        l.x = l.x + l.v * dt * math.cos( l.rot )
+        l.y = l.y + l.v * dt * math.sin( l.rot )
+        if keepOnScreen( l ) then
+            l.rot = -l.rot
+            l.v = -l.v
         end
     end
-
-    -- Stay on screen
-    local ps = math.max( player.w, player.h )/2 + 4
-    player.x = math.min( player.x, W - ps )
-    player.x = math.max( player.x, ps )
-    player.y = math.min( player.y, H - ps )
-    player.y = math.max( player.y, ps )
 end
 
-function drawBullets()
-end
-
+-------------
+-- Enemies --
+-------------
 function drawEnemies()
 end
 
+-----------
+-- Buffs --
+-----------
 function drawBuffs()
 end
 
@@ -112,19 +120,37 @@ end
 function love.update( dt )
     t = t + dt
     updatePlayer( dt )
+    updateLasers( dt )
 end
 
 function love.draw()
     drawPlayer()
-    drawBullets()
+    drawLasers()
     drawEnemies()
     drawBuffs()
     drawStats()
 end
 
+--------------
+-- Controls --
+--------------
 function love.joystickadded( joystick )
     if player.joystick == nil or not player.joystick:isConnected() then
         player.joystick = joystick
     end
+end
+
+function love.joystickremoved( joystick )
+    if joystick == player.joystick then
+        player.joystick = nil
+    end
+end
+
+function love.joystickpressed( joystick, button )
+    if joystick ~= player.joystick then
+        return
+    end
+
+    fireLaser( player )
 end
 
