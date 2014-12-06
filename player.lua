@@ -9,7 +9,7 @@ function createPlayer()
         pos = Vector:new( W/2, H/2 ),
         mov = Vector:new( 0, 0 ),
         movGoal = Vector:new( 0, 0 ),
-        facing = Vector:new( 0, 0 ),
+        facing = Vector:new( 1, 0 ),
         w = 48,
         h = 32,
         joystick = sticks[1]

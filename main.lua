@@ -3,6 +3,7 @@ require "player"
 
 DEAD_ZONE = 0.15
 MAX_PLAYER_VEL = 800
+MAX_LASER_VEL = MAX_PLAYER_VEL * 1.33
 
 -----------------
 -- Debug Stats --
@@ -43,38 +44,28 @@ function reset()
     lasers = {}
 end
 
-function keepOnScreen( o )
-    local originalx, originaly = o.x, o.y
-    local s = math.max( o.w, o.h )/2 + 4
-    o.x = math.min( o.x, W - s )
-    o.x = math.max( o.x, s )
-    o.y = math.min( o.y, H - s )
-    o.y = math.max( o.y, s )
-
-    return originalx == o.x and originaly == o.y
-end
-
 ------------
 -- Lasers --
 ------------
 function fireLaser( src )
-    local b = {
-        x = src.x,
-        y = src.y,
-        rot = src.rot,
+    local l = {
+        pos = Vector:new( src.pos.x, src.pos.y ),
+        vel = src.facing:normalized(),
         w = 28,
-        h = 4,
-        v = 800
+        h = 4
     }
+    if l.vel.x == 0 and l.vel.y == 0 then
+        l.vel.x, l.vel.y = 1, 1
+    end
 
-    table.insert( lasers, b )
+    table.insert( lasers, l )
 end
 
 function drawLasers()
     for _, l in pairs( lasers ) do
         love.graphics.push()
-        love.graphics.translate( l.x, l.y )
-        love.graphics.rotate( l.rot )
+        love.graphics.translate( l.pos.x, l.pos.y )
+        love.graphics.rotate( l.vel:angle() )
 
         love.graphics.setColor( 64, 255, 64 )
         love.graphics.rectangle( "fill", -l.w/2, -l.h/2, l.w, l.h )
@@ -88,12 +79,7 @@ end
 
 function updateLasers( dt )
     for _, l in pairs( lasers ) do
-        l.x = l.x + l.v * dt * math.cos( l.rot )
-        l.y = l.y + l.v * dt * math.sin( l.rot )
-        if keepOnScreen( l ) then
-            l.rot = -l.rot
-            l.v = -l.v
-        end
+        l.pos:translateBy( l.vel:scaled( MAX_LASER_VEL * dt ) )
     end
 end
 
