@@ -83,6 +83,13 @@ function updatePlayer( dt )
             player.rot = -math.atan2( rx, ry ) + math.pi/2
         end
     end
+
+    -- Stay on screen
+    local ps = math.max( player.w, player.h )/2 + 4
+    player.x = math.min( player.x, W - ps )
+    player.x = math.max( player.x, ps )
+    player.y = math.min( player.y, H - ps )
+    player.y = math.max( player.y, ps )
 end
 
 function drawBullets()
