@@ -9,6 +9,10 @@ function Vector:new( x, y )
     return v
 end
 
+function Vector:copy()
+    return Vector:new( self.x, self.y )
+end
+
 function Vector:add( other )
     self.x = self.x + other.x
     self.y = self.y + other.y

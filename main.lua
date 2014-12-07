@@ -1,5 +1,6 @@
 require "vector"
 require "player"
+require "laser"
 
 DEAD_ZONE = 0.15
 MAX_PLAYER_VEL = 800
@@ -47,51 +48,16 @@ end
 ------------
 -- Lasers --
 ------------
-function fireLaser( src )
-    local l = {
-        pos = Vector:new( src.pos.x, src.pos.y ),
-        vel = src.facing:normalized(),
-        w = 24,
-        h = 4
-    }
-
-    table.insert( lasers, l )
-end
 
 function drawLasers()
     for _, l in pairs( lasers ) do
-        love.graphics.push()
-        love.graphics.translate( l.pos.x, l.pos.y )
-        love.graphics.rotate( l.vel:angle() )
-
-        love.graphics.setColor( 64, 255, 64 )
-        love.graphics.rectangle( "fill", -l.w/2, -l.h/2, l.w, l.h )
-        if l.debugText ~= nil then
-            love.graphics.printf( l.debugText, -l.w/2, -l.h, l.w, "left", 0, love.window.getPixelScale(), love.window.getPixelScale() )
-        end
-
-        love.graphics.pop()
+        l:draw()
     end
 end
 
 function updateLasers( dt )
-    for _, l in pairs( lasers ) do
-        l.pos:add( l.vel:multiplyCopy( MAX_LASER_VEL * dt ) )
-
-        -- Wall collisions
-        if l.pos.x < 0 then
-            l.vel:reflect( Vector:new( 1, 0 ) )
-            l.pos.x = math.max( l.pos.x, 0 )
-        elseif l.pos.x > W then
-            l.vel:reflect( Vector:new( -1, 0 ) )
-            l.pos.x = math.min( l.pos.x, W )
-        elseif l.pos.y < 0 then
-            l.vel:reflect( Vector:new( 0, 1 ) )
-            l.pos.y = math.max( l.pos.y, l.h )
-        elseif l.pos.y > H then
-            l.vel:reflect( Vector:new( 0, -1 ) )
-            l.pos.y = math.min( l.pos.y, H )
-        end
+    for i, l in pairs( lasers ) do
+        l:update( dt, i )
     end
 end
 
@@ -122,10 +88,10 @@ function love.update( dt )
 end
 
 function love.draw()
-    drawPlayer()
     drawLasers()
     drawEnemies()
     drawBuffs()
+    drawPlayer()
     drawStats()
 end
 
@@ -149,6 +115,6 @@ function love.joystickpressed( joystick, button )
         return
     end
 
-    fireLaser( player )
+    fireLaser()
 end
 

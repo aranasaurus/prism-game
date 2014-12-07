@@ -55,3 +55,7 @@ function updatePlayer( dt )
     player.pos.y = math.min( player.pos.y, H - s )
     player.pos.y = math.max( player.pos.y, s )
 end
+
+function fireLaser()
+    table.insert( lasers, Laser:new( player.pos, player.facing ) )
+end
