@@ -51,12 +51,9 @@ function fireLaser( src )
     local l = {
         pos = Vector:new( src.pos.x, src.pos.y ),
         vel = src.facing:normalized(),
-        w = 28,
+        w = 24,
         h = 4
     }
-    if l.vel.x == 0 and l.vel.y == 0 then
-        l.vel.x, l.vel.y = 1, 1
-    end
 
     table.insert( lasers, l )
 end
@@ -79,7 +76,22 @@ end
 
 function updateLasers( dt )
     for _, l in pairs( lasers ) do
-        l.pos:translateBy( l.vel:scaled( MAX_LASER_VEL * dt ) )
+        l.pos:add( l.vel:multiplyCopy( MAX_LASER_VEL * dt ) )
+
+        -- Wall collisions
+        if l.pos.x < 0 then
+            l.vel:reflect( Vector:new( 1, 0 ) )
+            l.pos.x = math.max( l.pos.x, 0 )
+        elseif l.pos.x > W then
+            l.vel:reflect( Vector:new( -1, 0 ) )
+            l.pos.x = math.min( l.pos.x, W )
+        elseif l.pos.y < 0 then
+            l.vel:reflect( Vector:new( 0, 1 ) )
+            l.pos.y = math.max( l.pos.y, l.h )
+        elseif l.pos.y > H then
+            l.vel:reflect( Vector:new( 0, -1 ) )
+            l.pos.y = math.min( l.pos.y, H )
+        end
     end
 end
 

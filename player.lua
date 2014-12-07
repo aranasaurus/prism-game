@@ -43,10 +43,10 @@ function updatePlayer( dt )
         end
 
         player.mov = leftInput
-        player.mov:scaleBy( MAX_PLAYER_VEL * dt )
+        player.mov:multiply( MAX_PLAYER_VEL * dt )
         player.facing = rightInput
 
-        player.pos:translateBy( player.mov )
+        player.pos:add( player.mov )
     end
 
     local s = math.max( player.w, player.h)/2 + 4

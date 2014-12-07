@@ -9,21 +9,30 @@ function Vector:new( x, y )
     return v
 end
 
-function Vector:translateBy( other )
+function Vector:add( other )
     self.x = self.x + other.x
     self.y = self.y + other.y
 end
 
-function Vector:translated( other )
+function Vector:subtract( other )
+    self.x = self.x - other.x
+    self.y = self.y - other.y
+end
+
+function Vector:addCopy( other )
     return Vector:new( self.x + other.x, self.y + other.y )
 end
 
-function Vector:scaleBy( scl )
+function Vector:subtractCopy( other )
+    return Vector:new( self.x - other.x, self.y - other.y )
+end
+
+function Vector:multiply( scl )
     self.x = self.x * scl
     self.y = self.y * scl
 end
 
-function Vector:scaled( scl )
+function Vector:multiplyCopy( scl )
     return Vector:new( self.x * scl, self.y * scl )
 end
 
@@ -40,10 +49,20 @@ function Vector:normalized()
         return Vector:new( 0, 0 )
     end
 
-    local n = self:scaled( 1 / self:length() )
+    local n = self:multiplyCopy( 1 / self:length() )
     return Vector:new( n.x, n.y )
 end
 
 function Vector:angle()
     return math.atan2( self.y, self.x )
+end
+
+function Vector:dot( other )
+    return self.x * other.x + self.y * other.y
+end
+
+function Vector:reflect( other )
+    local velNorm = other:multiplyCopy( self:dot( other ) )
+    velNorm:multiply( 2 )
+    self:subtract( velNorm )
 end
