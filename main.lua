@@ -2,7 +2,7 @@ require "vector"
 require "player"
 require "laser"
 
-DEAD_ZONE = 0.15
+DEAD_ZONE = 0.18
 MAX_PLAYER_VEL = 800
 LASER_VEL = MAX_PLAYER_VEL * 1.33
 
@@ -157,15 +157,27 @@ function love.gamepadpressed( joystick, button )
         return
     end
 
-    if button == "y" then
-        bg_index = bg_index + 1
-        if bg_index > 5 then
-            bg_index = 1
-        end
-        loadBG()
-        return
+    if button == "dpup" or button == "dpright" then
+        nextBG()
+    elseif button == "dpdown" or button == "dpleft" then
+        prevBG()
     end
-    p1:fire()
+end
+
+function nextBG()
+    bg_index = bg_index + 1
+    if bg_index > 5 then
+        bg_index = 1
+    end
+    loadBG()
+end
+
+function prevBG()
+    bg_index = bg_index - 1
+    if bg_index < 1 then
+        bg_index = 5
+    end
+    loadBG()
 end
 
 function loadBG()

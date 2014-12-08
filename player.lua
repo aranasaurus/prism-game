@@ -20,6 +20,8 @@ function Player:new( x, y, joystick )
     p.w = 28
     p.h = math.floor( p.w * 9/16 )
     p.joystick = joystick
+    p.fireRate = 0.1 -- seconds
+    p.lastFired = 0
 
     return p
 end
@@ -52,12 +54,16 @@ function Player:update( dt )
         end
         if rightInput:length() < DEAD_ZONE then
             rightInput = self.dir
+        else
+            self:fire()
         end
 
         self.vel = leftInput:multiply( MAX_PLAYER_VEL * dt )
         self.dir = rightInput
 
         self.pos = self.pos:add( self.vel )
+    else
+        -- TODO: keyboard controls
     end
 
     local sz = math.max( self.w, self.h )/2 + 4
@@ -68,5 +74,14 @@ function Player:update( dt )
 end
 
 function Player:fire()
-    table.insert( lasers, Laser:new( self.pos, self.dir, self.laserColors[math.random( #self.laserColors )] ) )
+    if self:canFire() then
+        table.insert( lasers, Laser:new( self.pos, self.dir, self.laserColors[math.random( #self.laserColors )] ) )
+        self.lastFired = love.timer.getTime()
+    end
+end
+
+function Player:canFire()
+    local t = love.timer.getTime()
+    local dly = t - self.lastFired
+    return dly > self.fireRate
 end
