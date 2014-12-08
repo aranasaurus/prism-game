@@ -37,6 +37,7 @@ end
 -- Game Logic --
 ----------------
 lasers = {}
+deadlasers = {}
 enemies = {}
 buffs = {}
 
@@ -58,6 +59,30 @@ end
 function updateLasers( dt )
     for i, l in ipairs( lasers ) do
         l:update( dt, i )
+    end
+end
+
+-------------
+-- Effects --
+-------------
+
+function drawEffects()
+    for _, e in pairs( effects ) do
+        e:draw()
+    end
+end
+
+function updateEffects( dt )
+    local removables = {}
+    for i, e in ipairs( effects ) do
+        e:update( dt )
+        if e.alpha <= 0 then
+            removables[#removables + 1] = i
+        end
+    end
+
+    for i = #removables, 1, -1 do
+        table.remove( effects, i )
     end
 end
 

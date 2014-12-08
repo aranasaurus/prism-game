@@ -70,3 +70,14 @@ function Vector:reflect( other )
     velNorm:multiply( 2 )
     self:subtract( velNorm )
 end
+
+function Vector:rotate( angle )
+    local cosa = math.cos( angle )
+    local sina = math.sin( angle )
+    local r = self:copy()
+
+    r.x = self.x * cosa - self.y * sina
+    r.y = self.x * sina + self.y * cosa
+
+    return r
+end
