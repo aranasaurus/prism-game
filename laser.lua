@@ -46,7 +46,7 @@ function Laser:update( dt, i )
 
     for j, o in ipairs( lasers ) do
         -- All lasers except this one
-        if i ~= j and not o.sparks then
+        if i ~= j then
             if self:colliding( o ) then
                 self:die()
                 o:die()

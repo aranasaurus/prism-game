@@ -9,8 +9,6 @@ function love.conf( t )
     t.window.title = "HitBox"
     t.window.width = 1280
     t.window.height = 720
-    t.window.resizable = true
-    t.window.borderless = false
 
     t.modules.physics = false
 end

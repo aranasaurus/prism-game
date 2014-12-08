@@ -6,6 +6,10 @@ DEAD_ZONE = 0.15
 MAX_PLAYER_VEL = 800
 LASER_VEL = MAX_PLAYER_VEL * 1.33
 
+local bg = {}
+local bg_sx = 1
+local bg_sy = 1
+local bg_index = 5
 local p1 = {}
 lasers = {}
 effects = {}
@@ -110,6 +114,7 @@ end
 ----------
 function love.load( arg ) 
     W, H = love.window.getDimensions()
+    loadBG( bg_index )
     reset()
 end
 
@@ -121,6 +126,8 @@ function love.update( dt )
 end
 
 function love.draw()
+    love.graphics.setColor( 255, 255, 255, 255 * 0.28 )
+    love.graphics.draw( bg, 0, 0, 0, bg_sx, bg_sy )
     drawLasers()
     drawEffects()
     drawEnemies()
@@ -145,11 +152,25 @@ function love.joystickremoved( joystick )
     end
 end
 
-function love.joystickpressed( joystick, button )
+function love.gamepadpressed( joystick, button )
     if joystick ~= p1.joystick then
         return
     end
 
+    if button == "y" then
+        bg_index = bg_index + 1
+        if bg_index > 5 then
+            bg_index = 1
+        end
+        loadBG()
+        return
+    end
     p1:fire()
+end
+
+function loadBG()
+    bg = love.graphics.newImage( "res/bg"..bg_index..".png" )
+    bg_sx = W / bg:getWidth()
+    bg_sy = H / bg:getHeight()
 end
 
