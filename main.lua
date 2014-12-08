@@ -153,14 +153,3 @@ function love.joystickpressed( joystick, button )
     p1:fire()
 end
 
------------
--- Utils --
------------
-
-function combineColors( c1, c2 )
-    local c = {}
-    c[1] = math.min( c1[1] + c2[1], 255 )
-    c[2] = math.min( c1[2] + c2[2], 255 )
-    c[3] = math.min( c1[3] + c2[3], 255 )
-    return c
-end

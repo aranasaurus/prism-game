@@ -11,14 +11,14 @@ function Player:new( x, y, joystick )
     p.pos = Vector:new( x, y )
     p.vel = Vector:new( 0, 0 )
     p.dir = Vector:new( 1, 0 )
-    p.color = { 255, 0, 0 }
+    p.color = { 255, 80, 80, 255 }
     p.laserColors = {
-        { 255, 112, 112 },
-        { 255, 255, 64 },
-        { 96, 96, 255 }
+        { 255, 128, 101 },
+        { 248, 255, 64 },
+        { 0, 96, 255 }
     }
-    p.w = 48
-    p.h = 32
+    p.w = 28
+    p.h = math.floor( p.w * 9/16 )
     p.joystick = joystick
 
     return p
@@ -29,7 +29,10 @@ function Player:draw()
     love.graphics.translate( self.pos.x, self.pos.y )
     love.graphics.rotate( self.dir:angle() )
 
-    love.graphics.setColor( 255, 0, 0 )
+    love.graphics.setColor( 255, 255, 255 )
+    love.graphics.setLineWidth( 3 )
+    love.graphics.polygon( "line", -self.w/2, -self.h/2, self.w/2, 0, -self.w/2, self.h/2 )
+    love.graphics.setColor( self.color )
     love.graphics.polygon( "fill", -self.w/2, -self.h/2, self.w/2, 0, -self.w/2, self.h/2 )
     if self.debugText ~= nil then
         love.graphics.setColor( 255, 255, 255 )
