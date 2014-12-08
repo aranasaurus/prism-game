@@ -1,61 +1,69 @@
 require "vector"
+require "laser"
 
-player = {}
+Player = {}
 
-function createPlayer()
-    local sticks = love.joystick.getJoysticks()
+function Player:new( x, y, joystick )
+    local p = {}
+    setmetatable( p, self )
+    self.__index = self
 
-    player = {
-        pos = Vector:new( W/2, H/2 ),
-        mov = Vector:new( 0, 0 ),
-        movGoal = Vector:new( 0, 0 ),
-        facing = Vector:new( 1, 0 ),
-        w = 48,
-        h = 32,
-        joystick = sticks[1]
+    p.pos = Vector:new( x, y )
+    p.vel = Vector:new( 0, 0 )
+    p.dir = Vector:new( 1, 0 )
+    p.color = { 255, 0, 0 }
+    p.laserColors = {
+        { 255, 112, 112 },
+        { 255, 255, 64 },
+        { 96, 96, 255 }
     }
+    p.w = 48
+    p.h = 32
+    p.joystick = joystick
+
+    return p
 end
 
-function drawPlayer()
+function Player:draw()
     love.graphics.push()
-    love.graphics.translate( player.pos.x, player.pos.y )
-    love.graphics.rotate( player.facing:angle() )
+    love.graphics.translate( self.pos.x, self.pos.y )
+    love.graphics.rotate( self.dir:angle() )
 
     love.graphics.setColor( 255, 0, 0 )
-    love.graphics.polygon( "fill", -player.w/2, -player.h/2, player.w/2, 0, -player.w/2, player.h/2 )
-    if player.debugText ~= nil then
-        love.graphics.printf( player.debugText, -player.w/2, -player.h, player.w, "left", 0, love.window.getPixelScale(), love.window.getPixelScale() )
+    love.graphics.polygon( "fill", -self.w/2, -self.h/2, self.w/2, 0, -self.w/2, self.h/2 )
+    if self.debugText ~= nil then
+        love.graphics.setColor( 255, 255, 255 )
+        love.graphics.printf( self.debugText, -self.w/2, -self.h, self.w * 2, "left", 0, love.window.getPixelScale(), love.window.getPixelScale() )
     end
     love.graphics.pop()
 end
 
-function updatePlayer( dt )
-    if player.joystick ~= nil then
-        local leftInput = Vector:new( player.joystick:getGamepadAxis( "leftx" ), player.joystick:getGamepadAxis( "lefty" ) )
-        local rightInput = Vector:new( player.joystick:getGamepadAxis( "rightx" ), player.joystick:getGamepadAxis( "righty" ) )
+function Player:update( dt )
+    if self.joystick ~= nil then
+        local leftInput = Vector:new( self.joystick:getGamepadAxis( "leftx" ), self.joystick:getGamepadAxis( "lefty" ) )
+        local rightInput = Vector:new( self.joystick:getGamepadAxis( "rightx" ), self.joystick:getGamepadAxis( "righty" ) )
 
         if leftInput:length() < DEAD_ZONE then
             leftInput.x = 0
             leftInput.y = 0
         end
         if rightInput:length() < DEAD_ZONE then
-            rightInput = player.facing
+            rightInput = self.dir
         end
 
-        player.mov = leftInput
-        player.mov:multiply( MAX_PLAYER_VEL * dt )
-        player.facing = rightInput
+        self.vel = leftInput:multiply( MAX_PLAYER_VEL * dt )
+        self.dir = rightInput
 
-        player.pos:add( player.mov )
+        self.pos = self.pos:add( self.vel )
     end
 
-    local s = math.max( player.w, player.h)/2 + 4
-    player.pos.x = math.min( player.pos.x, W - s )
-    player.pos.x = math.max( player.pos.x, s )
-    player.pos.y = math.min( player.pos.y, H - s )
-    player.pos.y = math.max( player.pos.y, s )
+    local sz = math.max( self.w, self.h )/2 + 4
+    self.pos.x = math.min( self.pos.x, W - sz )
+    self.pos.x = math.max( self.pos.x, sz )
+    self.pos.y = math.min( self.pos.y, H - sz )
+    self.pos.y = math.max( self.pos.y, sz )
 end
 
-function fireLaser()
-    table.insert( lasers, Laser:new( player.pos, player.facing ) )
+function Player:fire()
+    table.insert( lasers, Laser:new( self.pos, self.dir, self.laserColors[math.random( #self.laserColors )] ) )
 end

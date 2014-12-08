@@ -4,7 +4,13 @@ require "laser"
 
 DEAD_ZONE = 0.15
 MAX_PLAYER_VEL = 800
-MAX_LASER_VEL = MAX_PLAYER_VEL * 1.33
+LASER_VEL = MAX_PLAYER_VEL * 1.33
+
+local p1 = {}
+lasers = {}
+effects = {}
+enemies = {}
+buffs = {}
 
 -----------------
 -- Debug Stats --
@@ -36,14 +42,15 @@ end
 ----------------
 -- Game Logic --
 ----------------
-lasers = {}
-deadlasers = {}
-enemies = {}
-buffs = {}
-
 function reset()
     createPlayer()
     lasers = {}
+end
+
+function createPlayer()
+    local sticks = love.joystick.getJoysticks()
+
+    p1 = Player:new( W/2, H/2, sticks[1] )
 end
 
 ------------
@@ -108,15 +115,18 @@ end
 
 function love.update( dt )
     t = t + dt
-    updatePlayer( dt )
+    p1:update( dt )
     updateLasers( dt )
+    updateEffects( dt )
 end
 
 function love.draw()
     drawLasers()
+    drawEffects()
     drawEnemies()
     drawBuffs()
-    drawPlayer()
+
+    p1:draw()
     drawStats()
 end
 
@@ -124,22 +134,33 @@ end
 -- Controls --
 --------------
 function love.joystickadded( joystick )
-    if player.joystick == nil or not player.joystick:isConnected() then
-        player.joystick = joystick
+    if p1.joystick == nil or not p1.joystick:isConnected() then
+        p1.joystick = joystick
     end
 end
 
 function love.joystickremoved( joystick )
-    if joystick == player.joystick then
-        player.joystick = nil
+    if joystick == p1.joystick then
+        p1.joystick = nil
     end
 end
 
 function love.joystickpressed( joystick, button )
-    if joystick ~= player.joystick then
+    if joystick ~= p1.joystick then
         return
     end
 
-    fireLaser()
+    p1:fire()
 end
 
+-----------
+-- Utils --
+-----------
+
+function combineColors( c1, c2 )
+    local c = {}
+    c[1] = math.min( c1[1] + c2[1], 255 )
+    c[2] = math.min( c1[2] + c2[2], 255 )
+    c[3] = math.min( c1[3] + c2[3], 255 )
+    return c
+end

@@ -14,29 +14,14 @@ function Vector:copy()
 end
 
 function Vector:add( other )
-    self.x = self.x + other.x
-    self.y = self.y + other.y
-end
-
-function Vector:subtract( other )
-    self.x = self.x - other.x
-    self.y = self.y - other.y
-end
-
-function Vector:addCopy( other )
     return Vector:new( self.x + other.x, self.y + other.y )
 end
 
-function Vector:subtractCopy( other )
+function Vector:subtract( other )
     return Vector:new( self.x - other.x, self.y - other.y )
 end
 
 function Vector:multiply( scl )
-    self.x = self.x * scl
-    self.y = self.y * scl
-end
-
-function Vector:multiplyCopy( scl )
     return Vector:new( self.x * scl, self.y * scl )
 end
 
@@ -48,14 +33,15 @@ function Vector:lengthsq()
     return self.x * self.x + self.y * self.y
 end
 
-function Vector:normalized()
-    if self:length() == 0 then
+function Vector:normalize()
+    local l = self:length()
+    if l == 0 then
         return Vector:new( 0, 0 )
     end
 
-    local n = self:multiplyCopy( 1 / self:length() )
-    return Vector:new( n.x, n.y )
+    return self:multiply( 1/l )
 end
+
 
 function Vector:angle()
     return math.atan2( self.y, self.x )
@@ -66,9 +52,9 @@ function Vector:dot( other )
 end
 
 function Vector:reflect( other )
-    local velNorm = other:multiplyCopy( self:dot( other ) )
-    velNorm:multiply( 2 )
-    self:subtract( velNorm )
+    local velNorm = other:multiply( self:dot( other ) )
+    velNorm = velNorm:multiply( 2 )
+    return self:subtract( velNorm )
 end
 
 function Vector:rotate( angle )
