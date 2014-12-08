@@ -34,16 +34,22 @@ function Laser:update( dt, i )
     self.pos:add( self.vel:multiplyCopy( MAX_LASER_VEL * dt ) )
 
     if self.vel:lengthsq() > 0 then
-        for j, o in pairs( lasers ) do
+        for j, o in ipairs( lasers ) do
             -- All lasers that are still enabled except 'l'
             if i ~= j and o.vel:lengthsq() > 0 then
 
                 local distVector = o.pos:subtractCopy( self.pos )
                 local dist = distVector:length()
-                if dist < self.w or dist < self.h then
-                    -- collision!
-                    self.vel:multiply( 0 )
-                    o.vel:multiply( 0 )
+                -- This collision detection is very sloppy, but it's good enough for now
+                -- TODO: Make this more accurate
+                if dist < self.w/2 or dist < self.h/2 then
+                    table.remove( lasers, i )
+                    -- adjust index for order of removal
+                    if i < j then j = j - 1 end
+                    table.remove( lasers, j )
+
+                    -- TODO: spawn enemy/powerup
+                    return
                 end
             end
         end

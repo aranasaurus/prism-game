@@ -56,7 +56,7 @@ function drawLasers()
 end
 
 function updateLasers( dt )
-    for i, l in pairs( lasers ) do
+    for i, l in ipairs( lasers ) do
         l:update( dt, i )
     end
 end
