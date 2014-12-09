@@ -13,7 +13,7 @@ function Laser:new( pos, dir, color, player )
     l.color = color or { 64, 255, 64 }
     l.w = 24
     l.h = 4
-    l.value = love.math.random( 1, 16 )
+    l.value = 1
     l.player = player
 
     return l
@@ -58,7 +58,7 @@ function Laser:update( dt, i )
         -- All lasers except this one
         if i ~= j then
             if self:colliding( o ) then
-                self.player.score = self.player.score + self.value
+                self.player:addScore( self.value )
                 self:die( true, o.color )
                 o:die()
                 return

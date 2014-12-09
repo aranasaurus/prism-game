@@ -62,30 +62,57 @@ function Player:update( dt )
         return
     end
 
-    local lf = nil
+    -- Gather inputs
+    local leftInput = Vector:new( 0, 0 )
+    local rightInput = Vector:new( 0, 0 )
+    local firing = false
+
     if self.joystick ~= nil then
-        local leftInput = Vector:new( self.joystick:getGamepadAxis( "leftx" ), self.joystick:getGamepadAxis( "lefty" ) )
-        local rightInput = Vector:new( self.joystick:getGamepadAxis( "rightx" ), self.joystick:getGamepadAxis( "righty" ) )
+        leftInput.x, leftInput.y = self.joystick:getGamepadAxis( "leftx" ), self.joystick:getGamepadAxis( "lefty" )
+        rightInput.x, rightInput.y = self.joystick:getGamepadAxis( "rightx" ), self.joystick:getGamepadAxis( "righty" )
 
         if leftInput:length() < DEAD_ZONE then
-            leftInput.x = 0
-            leftInput.y = 0
+            leftInput.x, leftInput.y = 0, 0
         end
-
-        self.pos = self.pos:add( self.vel )
 
         if rightInput:length() < DEAD_ZONE then
             rightInput = self.dir
-        else
-            lf = self:fire()
         end
 
-        self.vel = leftInput:multiply( MAX_PLAYER_VEL * dt )
-        self.dir = rightInput:normalize()
-
+        firing = self.joystick:getGamepadAxis( "triggerright" ) > DEAD_ZONE
     else
-        -- TODO: keyboard controls
+        if love.keyboard.isDown( "w" ) then
+            leftInput.y = -0.9
+        end
+        if love.keyboard.isDown( "a" ) then
+            leftInput.x = -0.9
+        end
+        if love.keyboard.isDown( "s" ) then
+            leftInput.y = 0.9
+        end
+        if love.keyboard.isDown( "d" ) then
+            leftInput.x = 0.9
+        end
+
+        rightInput = self.dir
+        if love.keyboard.isDown( "up" ) then
+            firing = true
+        end
+        if love.keyboard.isDown( "left" ) then
+            rightInput = rightInput:rotate( -math.pi / 24 )
+        end
+        if love.keyboard.isDown( "right" ) then
+            rightInput = rightInput:rotate( math.pi / 24 )
+        end
+        if love.keyboard.isDown( "down" ) then
+            firing = true
+        end
     end
+
+    -- Update state with inputs
+    self.vel = leftInput:multiply( MAX_PLAYER_VEL * dt )
+    self.dir = rightInput:normalize()
+    self.pos = self.pos:add( self.vel )
 
     -- Keep it on screen
     local sz = math.max( self.w, self.h )/2 + 4
@@ -94,6 +121,10 @@ function Player:update( dt )
     self.pos.y = math.min( self.pos.y, H - sz )
     self.pos.y = math.max( self.pos.y, sz )
 
+    local lf = nil
+    if firing then
+        lf = self:fire()
+    end
     for i, l in ipairs( lasers ) do
         if l ~= lf and self:collidingWithLaser( l ) then
             self.hp = self.hp - 1
@@ -176,4 +207,8 @@ function Player:bbox()
         bot:add( horizontal ),
         bot:subtract( horizontal )
     }
+end
+
+function Player:addScore( s )
+    self.score = self.score + s
 end
