@@ -162,6 +162,10 @@ function love.gamepadpressed( joystick, button )
     elseif button == "dpdown" or button == "dpleft" then
         prevBG()
     end
+
+    if button == "back" then
+        reset()
+    end
 end
 
 function nextBG()

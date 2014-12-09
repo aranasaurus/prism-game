@@ -2,7 +2,7 @@ require "vector"
 
 Spark = {}
 
-function Spark:new( pos, dir, color, length, density )
+function Spark:new( pos, dir, color, decay, length, density )
     local e = {}
     setmetatable( e, self )
     self.__index = self
@@ -13,7 +13,7 @@ function Spark:new( pos, dir, color, length, density )
     e.density = density or 12
     e.color = color or { 255, 255, 255 }
     e.alpha = 255
-    e.decay = 255/30
+    e.decay = decay or 255/45
 
     e.sparks = {}
     local angle = (2 * math.pi) / e.density
@@ -46,6 +46,7 @@ function Spark:draw()
         local l = s.vel:multiply( self.length )
         local p1 = s.pos:subtract( l )
         local p2 = s.pos:add( l )
+        love.graphics.setLineWidth( 1 )
         love.graphics.line( p1.x, p1.y, p2.x, p2.y )
 
         love.graphics.pop()
@@ -100,3 +101,19 @@ function cmykToRgba( cmyk )
     return { r, g, b, cmyk.a }
 end
 
+function shipExplosion( ship, density, decay )
+    local density = density or 16
+    local decay = decay or 255/25
+    effects[#effects + 1] = Spark:new( ship.pos, ship.dir, ship.color, decay/2, 12, 48 )
+    for i = 1, density do
+        local c = ship.laserColors[love.math.random( 1, #ship.laserColors )]
+        local dec = love.math.random() * decay
+        local len = love.math.random( 4, 16 )
+        local dens = love.math.random( 6, 32 )
+        effects[#effects + 1] = Spark:new( ship.pos, randomDir( ship.dir ), c, dec, len, dens )
+    end
+end
+
+function randomDir( dir )
+    return dir:multiply( love.math.random() + 1 ):rotate( love.math.random( 2 * math.pi ) )
+end

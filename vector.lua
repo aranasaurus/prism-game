@@ -42,7 +42,6 @@ function Vector:normalize()
     return self:multiply( 1/l )
 end
 
-
 function Vector:angle()
     return math.atan2( self.y, self.x )
 end
@@ -66,4 +65,29 @@ function Vector:rotate( angle )
     r.y = self.x * sina + self.y * cosa
 
     return r
+end
+
+function Vector.isInsideHalfPlane( p, p0, dir )
+    return p:subtract( p0 ):dot( dir ) >= 0
+end
+
+function Vector:turnLeft()
+    return Vector:new( self.y, -self.x )
+end
+
+function Vector:turnRight()
+    return Vector:new( -self.y, self.x )
+end
+
+function Vector.linesIntersect( l1, l2 )
+    local s1 = l1[2]:subtract( l1[1] )
+    local s2 = l2[2]:subtract( l2[1] )
+    local u = l1[1]:subtract( l2[1] )
+
+    local ip = 1 / (-s2.x * s1.y + s1.x * s2.y)
+
+    local s = (-s1.y * u.x + s1.x * u.y) * ip
+    local t = (s2.x * u.y - s2.y * u.x) * ip
+
+    return s >= 0 and s <= 1 and t >= 0 and t <= 1
 end

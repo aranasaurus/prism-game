@@ -23,6 +23,7 @@ function Laser:draw()
     love.graphics.rotate( self.dir:angle() )
 
     love.graphics.setColor( self.color )
+    love.graphics.setLineWidth( self.h )
     love.graphics.rectangle( "fill", -self.w/2, -self.h/2, self.w, self.h )
     if self.debugText ~= nil then
         love.graphics.setColor( 255, 255, 255 )
@@ -32,13 +33,20 @@ function Laser:draw()
     love.graphics.pop()
 end
 
-function Laser:die()
+function Laser:die( withEffects, color )
     -- remove this laser from the lasers array
     for i, l in ipairs( lasers ) do
         if l == self then
             table.remove( lasers, i )
         end
     end
+
+    if withEffects then
+        effects[#effects + 1] = Spark:new( self.pos, self.dir, combineColors( self.color, color ) )
+        -- TODO: Sound effects?
+    end
+
+    -- TODO: spawn enemy/powerup
 end
 
 function Laser:update( dt, i )
@@ -48,13 +56,9 @@ function Laser:update( dt, i )
         -- All lasers except this one
         if i ~= j then
             if self:colliding( o ) then
-                self:die()
+                self:die( true, o.color )
                 o:die()
 
-                effects[#effects + 1] = Spark:new( self.pos, self.dir, combineColors( self.color, o.color ) )
-                -- TODO: Sound effects?
-
-                -- TODO: spawn enemy/powerup
                 return
             end
         end
@@ -79,9 +83,11 @@ end
 function Laser:colliding( o )
     -- This collision detection is very sloppy, but it's good enough for now
     -- TODO: Make this more accurate
+    return o.pos:subtract( self.pos ):length() < self.w/2
+end
 
-    local distVector = o.pos:subtract( self.pos )
-    local dist = distVector:length()
-    return dist < self.w/2
+function Laser:lineSegment()
+    local hl = self.dir:multiply( self.w/2 )
+    return { self.pos:subtract( hl ), self.pos:add( hl ) }
 end
 
