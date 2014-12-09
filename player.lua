@@ -27,6 +27,14 @@ function Player:new( x, y, joystick, maxHP )
     p.hp = p.maxHP
     p.score = 0
 
+    p.death = {
+        diedAt = 0,
+        duration = 0,
+        max_duration = 1.6,
+        rot = 0,
+        color = { 255, 255, 255, 255 }
+    }
+
     return p
 end
 
@@ -35,14 +43,18 @@ function Player:draw()
     love.graphics.translate( self.pos.x, self.pos.y )
     love.graphics.rotate( self.dir:angle() )
 
-    local a = 255
     if self.dead then
-        a = self.alpha
+        love.graphics.scale( self.death.scale )
+        love.graphics.rotate( self.death.rot )
+        love.graphics.setColor( self.death.color )
+        love.graphics.polygon( "fill", -self.w/2, -self.h/2, self.w/2, 0, -self.w/2, self.h/2 )
+        love.graphics.pop()
+        return
     end
-    love.graphics.setColor( self.color[1], self.color[2], self.color[3], a )
+    love.graphics.setColor( self.color )
     love.graphics.setLineWidth( 3 )
     love.graphics.polygon( "line", -self.w/2, -self.h/2, self.w/2, 0, -self.w/2, self.h/2 )
-    love.graphics.setColor( 255, 255, 255, 255 - (255 * (self.hp/self.maxHP)) )
+    love.graphics.setColor( 255, 255, 255, (255 * (self.hp/self.maxHP)) )
     love.graphics.polygon( "fill", -self.w/2, -self.h/2, self.w/2, 0, -self.w/2, self.h/2 )
     if self.debugText ~= nil then
         love.graphics.setColor( 255, 255, 255 )
@@ -54,9 +66,11 @@ end
 function Player:update( dt )
     if self.dead then 
         self:explode()
-        self.alpha = self.alpha - 3
+        self.death.duration = love.timer.getTime() - self.death.diedAt
+        self.death.color[4] = self.death.color[4] - 84 * dt
+        self.death.rot = self.death.rot + math.pi * 1.66 * (3 + self.death.duration) * dt
 
-        if self.alpha <= 0 then
+        if self.death.duration > self.death.max_duration then
             reset()
         end
         return
@@ -139,9 +153,9 @@ end
 
 function Player:die()
     if self.dead then return end
-    self.alpha = 255
     self.dead = true
-    self.diedAt = love.timer.getTime()
+    self.death.diedAt = love.timer.getTime()
+    self.death.duration = 0
     self:explode()
     lasers = {}
 end
@@ -149,7 +163,7 @@ end
 function Player:explode()
     if self.lastExplosion ~= nil and love.timer.getTime() - self.lastExplosion < 0.05 then return end
 
-    local density = 8 * ((love.timer.getTime() - self.diedAt) * 1.1 )
+    local density = 8 * (self.death.duration * 1.1)
     local dec = 8
     for i = 1, density do
         local c = self.laserColors[love.math.random( 1, #self.laserColors )]
