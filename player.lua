@@ -34,7 +34,11 @@ function Player:draw()
     love.graphics.translate( self.pos.x, self.pos.y )
     love.graphics.rotate( self.dir:angle() )
 
-    love.graphics.setColor( 255, 255, 255, 255 )
+    local a = 255
+    if self.dead then
+        a = self.alpha
+    end
+    love.graphics.setColor( 255, 255, 255, a )
     love.graphics.setLineWidth( 3 )
     love.graphics.polygon( "line", -self.w/2, -self.h/2, self.w/2, 0, -self.w/2, self.h/2 )
     love.graphics.setColor( self.color[1], self.color[2], self.color[3], self.color[4] * (self.hp/self.maxHP) )
@@ -47,6 +51,16 @@ function Player:draw()
 end
 
 function Player:update( dt )
+    if self.dead then 
+        self:explode()
+        self.alpha = self.alpha - 3
+
+        if self.alpha <= 0 then
+            reset()
+        end
+        return
+    end
+
     local lf = nil
     if self.joystick ~= nil then
         local leftInput = Vector:new( self.joystick:getGamepadAxis( "leftx" ), self.joystick:getGamepadAxis( "lefty" ) )
@@ -93,9 +107,25 @@ end
 
 function Player:die()
     if self.dead then return end
+    self.alpha = 255
     self.dead = true
-    shipExplosion( self )
-    self.dead = false
+    self.diedAt = love.timer.getTime()
+    self:explode()
+    lasers = {}
+end
+
+function Player:explode()
+    if self.lastExplosion ~= nil and love.timer.getTime() - self.lastExplosion < 0.05 then return end
+
+    local density = 8 * ((love.timer.getTime() - self.diedAt) * 1.1 )
+    local dec = 8
+    for i = 1, density do
+        local c = self.laserColors[love.math.random( 1, #self.laserColors )]
+        local len = love.math.random( 4, 16 )
+        local dens = love.math.random( 6, 32 )
+        effects[#effects + 1] = Spark:new( self.pos, randomDir( self.dir ), c, dec, len, dens )
+    end
+    self.lastExplosion = love.timer.getTime()
 end
 
 function Player:fire()

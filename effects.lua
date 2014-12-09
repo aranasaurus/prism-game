@@ -101,19 +101,6 @@ function cmykToRgba( cmyk )
     return { r, g, b, cmyk.a }
 end
 
-function shipExplosion( ship, density, decay )
-    local density = density or 16
-    local decay = decay or 255/25
-    effects[#effects + 1] = Spark:new( ship.pos, ship.dir, ship.color, decay/2, 12, 48 )
-    for i = 1, density do
-        local c = ship.laserColors[love.math.random( 1, #ship.laserColors )]
-        local dec = love.math.random() * decay
-        local len = love.math.random( 4, 16 )
-        local dens = love.math.random( 6, 32 )
-        effects[#effects + 1] = Spark:new( ship.pos, randomDir( ship.dir ), c, dec, len, dens )
-    end
-end
-
 function randomDir( dir )
     return dir:multiply( love.math.random() + 1 ):rotate( love.math.random( 2 * math.pi ) )
 end
