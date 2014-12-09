@@ -25,6 +25,7 @@ function Player:new( x, y, joystick, maxHP )
     p.lastFired = 0
     p.maxHP = maxHP or 4
     p.hp = p.maxHP
+    p.score = 0
 
     return p
 end
@@ -38,10 +39,10 @@ function Player:draw()
     if self.dead then
         a = self.alpha
     end
-    love.graphics.setColor( 255, 255, 255, a )
+    love.graphics.setColor( self.color[1], self.color[2], self.color[3], a )
     love.graphics.setLineWidth( 3 )
     love.graphics.polygon( "line", -self.w/2, -self.h/2, self.w/2, 0, -self.w/2, self.h/2 )
-    love.graphics.setColor( self.color[1], self.color[2], self.color[3], self.color[4] * (self.hp/self.maxHP) )
+    love.graphics.setColor( 255, 255, 255, 255 - (255 * (self.hp/self.maxHP)) )
     love.graphics.polygon( "fill", -self.w/2, -self.h/2, self.w/2, 0, -self.w/2, self.h/2 )
     if self.debugText ~= nil then
         love.graphics.setColor( 255, 255, 255 )
@@ -130,7 +131,7 @@ end
 
 function Player:fire()
     if self:canFire() then
-        local l = Laser:new( self.pos:add( self.dir:multiply( math.ceil( self.w * 0.8 ) ) ), self.dir, self.laserColors[math.random( #self.laserColors )] )
+        local l = Laser:new( self.pos:add( self.dir:multiply( math.ceil( self.w * 0.8 ) ) ), self.dir, self.laserColors[math.random( #self.laserColors )], self )
         table.insert( lasers, l )
         self.lastFired = love.timer.getTime()
         return l

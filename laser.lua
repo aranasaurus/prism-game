@@ -3,7 +3,7 @@ require "effects"
 
 Laser = {}
 
-function Laser:new( pos, dir, color )
+function Laser:new( pos, dir, color, player )
     local l = {}
     setmetatable( l, self )
     self.__index = self
@@ -13,6 +13,8 @@ function Laser:new( pos, dir, color )
     l.color = color or { 64, 255, 64 }
     l.w = 24
     l.h = 4
+    l.value = love.math.random( 1, 16 )
+    l.player = player
 
     return l
 end
@@ -56,9 +58,9 @@ function Laser:update( dt, i )
         -- All lasers except this one
         if i ~= j then
             if self:colliding( o ) then
+                self.player.score = self.player.score + self.value
                 self:die( true, o.color )
                 o:die()
-
                 return
             end
         end

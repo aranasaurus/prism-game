@@ -2,7 +2,7 @@ require "vector"
 require "player"
 require "laser"
 
-DEAD_ZONE = 0.18
+DEAD_ZONE = 0.2
 MAX_PLAYER_VEL = 800
 LASER_VEL = MAX_PLAYER_VEL * 1.33
 
@@ -38,7 +38,8 @@ function drawStats()
         love.graphics.push()
         love.graphics.origin()
         love.graphics.setColor( 255, 255, 255, 255 )
-        love.graphics.printf( stats, 10, 10, W - 20, "left", 0, love.window.getPixelScale(), love.window.getPixelScale() )
+        love.graphics.printf( stats, 10, 10, W - 120, "left", 0, love.window.getPixelScale(), love.window.getPixelScale() )
+        love.graphics.printf( "SCORE: "..string.gsub( tostring(p1.score), "^(-?%d+)(%d%d%d)", '%1,%2' ), W/2, 10, W/2 - 10, "right", 0, love.window.getPixelScale(), love.window.getPixelScale() )
         love.graphics.pop()
     end
 end
