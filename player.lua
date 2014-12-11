@@ -1,9 +1,10 @@
 require "vector"
 require "laser"
+require "color"
 
 Player = {}
 
-function Player:new( x, y, joystick, maxHP )
+function Player:new( x, y, joystick, colorIndex, maxHP )
     local p = {}
     setmetatable( p, self )
     self.__index = self
@@ -11,13 +12,6 @@ function Player:new( x, y, joystick, maxHP )
     p.pos = Vector:new( x, y )
     p.vel = Vector:new( 0, 0 )
     p.dir = Vector:new( 1, 0 )
-    p.color = { 255, 80, 80, 255 }
-    p.laserColors = {
-        { 255, 128, 101 },
-        { 248, 255, 64 },
-        { 0, 96, 255 },
-        { 65, 255, 96 }
-    }
     p.w = 32
     p.h = math.floor( p.w * 9/16 )
     p.joystick = joystick
@@ -26,13 +20,14 @@ function Player:new( x, y, joystick, maxHP )
     p.maxHP = maxHP or 4
     p.hp = p.maxHP
     p.score = 0
+    p.color = Laser.colors[colorIndex or 1]:copy()
 
     p.death = {
         diedAt = 0,
         duration = 0,
         max_duration = 1.6,
         rot = 0,
-        color = { 255, 255, 255, 255 }
+        color = Color:new( 255, 255, 255, 255, "white" )
     }
 
     return p
@@ -46,12 +41,12 @@ function Player:draw()
     if self.dead then
         love.graphics.scale( self.death.scale )
         love.graphics.rotate( self.death.rot )
-        love.graphics.setColor( self.death.color )
+        love.graphics.setColor( self.death.color:toarray() )
         love.graphics.polygon( "fill", -self.w/2, -self.h/2, self.w/2, 0, -self.w/2, self.h/2 )
         love.graphics.pop()
         return
     end
-    love.graphics.setColor( self.color )
+    love.graphics.setColor( self.color:toarray() )
     love.graphics.setLineWidth( 3 )
     love.graphics.polygon( "line", -self.w/2, -self.h/2, self.w/2, 0, -self.w/2, self.h/2 )
     love.graphics.setColor( 255, 255, 255, (255 * (self.hp/self.maxHP)) )
@@ -67,7 +62,7 @@ function Player:update( dt )
     if self.dead then 
         self:explode()
         self.death.duration = love.timer.getTime() - self.death.diedAt
-        self.death.color[4] = self.death.color[4] - 84 * dt
+        self.death.color.a = self.death.color.a - 84 * dt
         self.death.rot = self.death.rot + math.pi * 1.66 * (3 + self.death.duration) * dt
 
         if self.death.duration > self.death.max_duration then
@@ -135,17 +130,19 @@ function Player:update( dt )
     self.pos.y = math.min( self.pos.y, H - sz )
     self.pos.y = math.max( self.pos.y, sz )
 
-    local lf = nil
     if firing then
-        lf = self:fire()
+        self:fire()
     end
     for i, l in ipairs( lasers ) do
-        if l ~= lf and self:collidingWithLaser( l ) then
-            self.hp = self.hp - 1
-            l:die( true, l.color )
+        -- Only lasers that are not our color
+        if l.name ~= self.color.name and self:collidingWithLaser( l ) then
+            if l.color.name ~= self.color.name then
+                self.hp = self.hp - 1
+                l:die( true, l.color )
 
-            if self.hp <= 0 then
-                self:die()
+                if self.hp <= 0 then
+                    self:die()
+                end
             end
         end
     end
@@ -166,7 +163,7 @@ function Player:explode()
     local density = 8 * (self.death.duration * 1.1)
     local dec = 8
     for i = 1, density do
-        local c = self.laserColors[love.math.random( 1, #self.laserColors )]
+        local c = Laser.colors[love.math.random( 1, #Laser.colors )]:copy()
         local len = love.math.random( 4, 16 )
         local dens = love.math.random( 6, 32 )
         effects[#effects + 1] = Spark:new( self.pos, randomDir( self.dir ), c, dec, len, dens )
@@ -176,7 +173,7 @@ end
 
 function Player:fire()
     if self:canFire() then
-        local l = Laser:new( self.pos:add( self.dir:multiply( math.ceil( self.w * 0.8 ) ) ), self.dir, self.laserColors[math.random( #self.laserColors )], self )
+        local l = Laser:new( self.pos:add( self.dir:multiply( math.ceil( self.w * 0.8 ) ) ), self.dir, self )
         table.insert( lasers, l )
         self.lastFired = love.timer.getTime()
         return l
@@ -225,4 +222,8 @@ end
 
 function Player:addScore( s )
     self.score = self.score + s
+end
+
+function Player:changeColor( index )
+    self.color = Laser.colors[index]:copy()
 end

@@ -1,16 +1,24 @@
 require "vector"
 require "effects"
+require "color"
 
-Laser = {}
+Laser = {
+    colors = {
+        Color:new( 65, 255, 96, 255, "green" ),
+        Color:new( 0, 96, 255, 255, "red" ),
+        Color:new( 248, 255, 64, 255, "yellow" ),
+        Color:new( 255, 128, 101, 255, "red" )
+    }
+}
 
-function Laser:new( pos, dir, color, player )
+function Laser:new( pos, dir, player )
     local l = {}
     setmetatable( l, self )
     self.__index = self
 
     l.pos = pos:copy()
     l.dir = dir:normalize()
-    l.color = color or { 64, 255, 64 }
+    l.color = player.color:copy()
     l.w = 24
     l.h = 4
     l.value = 1
@@ -24,8 +32,8 @@ function Laser:draw()
     love.graphics.translate( self.pos.x, self.pos.y )
     love.graphics.rotate( self.dir:angle() )
 
-    love.graphics.setColor( self.color )
-    love.graphics.setLineWidth( self.h )
+    love.graphics.setColor( self.color:toarray() )
+    love.graphics.setLineWidth( self.h * love.window.getPixelScale() )
     love.graphics.rectangle( "fill", -self.w/2, -self.h/2, self.w, self.h )
     if self.debugText ~= nil then
         love.graphics.setColor( 255, 255, 255 )
@@ -44,7 +52,7 @@ function Laser:die( withEffects, color )
     end
 
     if withEffects then
-        effects[#effects + 1] = Spark:new( self.pos, self.dir, combineColors( self.color, color ) )
+        effects[#effects + 1] = Spark:new( self.pos, self.dir, self.color:combine( color ) )
         -- TODO: Sound effects?
     end
 
@@ -58,7 +66,10 @@ function Laser:update( dt, i )
         -- All lasers except this one
         if i ~= j then
             if self:colliding( o ) then
-                self.player:addScore( self.value )
+                if self.color.name ~= o.color.name then
+                    self.player:addScore( self.value )
+                    o.player:addScore( o.value )
+                end
                 self:die( true, o.color )
                 o:die()
                 return

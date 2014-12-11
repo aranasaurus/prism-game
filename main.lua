@@ -88,7 +88,7 @@ function updateEffects( dt )
     local removables = {}
     for i, e in ipairs( effects ) do
         e:update( dt )
-        if e.alpha <= 0 then
+        if e.color.a <= 0 then
             removables[#removables + 1] = i
         end
     end
@@ -167,6 +167,20 @@ function love.gamepadpressed( joystick, button )
     if button == "back" then
         reset()
     end
+
+    if button == "a" then
+        p1:changeColor( 1 )
+    end
+    if button == "x" then
+        p1:changeColor( 2 )
+    end
+    if button == "y" then
+        p1:changeColor( 3 )
+    end
+    if button == "b" then
+        p1:changeColor( 4 )
+    end
+
 end
 
 function nextBG()

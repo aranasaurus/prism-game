@@ -1,4 +1,5 @@
 require "vector"
+require "color"
 
 Spark = {}
 
@@ -11,8 +12,7 @@ function Spark:new( pos, dir, color, decay, length, density )
     e.dir = dir:copy()
     e.length = length or 6
     e.density = density or 12
-    e.color = color or { 255, 255, 255 }
-    e.alpha = 255
+    e.color = color:copy()
     e.decay = decay or 255/45
 
     e.sparks = {}
@@ -29,7 +29,7 @@ function Spark:new( pos, dir, color, decay, length, density )
 end
 
 function Spark:update( dt )
-    self.alpha = self.alpha - self.decay
+    self.color.a = self.color.a - self.decay
     for i, s in ipairs( self.sparks ) do
         s.pos = s.pos:add( s.vel:multiply( LASER_VEL * 0.66 * dt ) )
     end
@@ -42,7 +42,7 @@ function Spark:draw()
     for i, s in ipairs( self.sparks ) do
         love.graphics.push()
 
-        love.graphics.setColor( self.color[1], self.color[2], self.color[3], self.alpha )
+        love.graphics.setColor( self.color:toarray() )
         local l = s.vel:multiply( self.length )
         local p1 = s.pos:subtract( l )
         local p2 = s.pos:add( l )
@@ -58,49 +58,6 @@ end
 -----------
 -- Utils --
 -----------
-
-function combineColors( c1, c2 )
-    local cmyk1 = rgbaToCmyk( c1 )
-    local cmyk2 = rgbaToCmyk( c2 )
-
-    local cmyk = {
-        c = (cmyk1.c + cmyk2.c) / 2,
-        m = (cmyk1.m + cmyk2.m) / 2,
-        y = (cmyk1.y + cmyk2.y) / 2,
-        k = (cmyk1.k + cmyk2.k) / 2,
-        a = math.max( c1[4] or 255, c2[4] or 255 )
-    }
-    return cmykToRgba( cmyk )
-end
-
-function rgbaToCmyk( rgba )
-    local cmyk = { c = 0, y = 0, m = 0, k = 0 }
-
-    cmyk.c = 255 - rgba[1]
-    cmyk.m = 255 - rgba[2]
-    cmyk.y = 255 - rgba[3]
-    cmyk.k = math.min( cmyk.c, cmyk.m, cmyk.y )
-
-    cmyk.c = ((cmyk.c - cmyk.k) / (255 - cmyk.k))
-    cmyk.m = ((cmyk.m - cmyk.k) / (255 - cmyk.k))
-    cmyk.y = ((cmyk.y - cmyk.k) / (255 - cmyk.k))
-    cmyk.k = cmyk.k/255
-    cmyk.a = rgba[4]
-
-    return cmyk
-end
-
-function cmykToRgba( cmyk )
-    local r = cmyk.c * (1 - cmyk.k) + cmyk.k
-    local g = cmyk.m * (1 - cmyk.k) + cmyk.k
-    local b = cmyk.y * (1 - cmyk.k) + cmyk.k
-    r = math.ceil( (1 - r) * 255 )
-    g = math.ceil( (1 - g) * 255 )
-    b = math.ceil( (1 - b) * 255 )
-
-    return { r, g, b, cmyk.a }
-end
-
 function randomDir( dir )
     return dir:multiply( love.math.random() + 1 ):rotate( love.math.random( 2 * math.pi ) )
 end
