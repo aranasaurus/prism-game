@@ -59,5 +59,5 @@ end
 -- Utils --
 -----------
 function randomDir( dir )
-    return dir:multiply( love.math.random() + 1 ):rotate( love.math.random( 2 * math.pi ) )
+    return dir:multiply( love.math.random() + 1 ):rotate( love.math.random() + 2 * math.pi )
 end

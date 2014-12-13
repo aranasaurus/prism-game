@@ -5,6 +5,10 @@ function Color:new( r, g, b, a, name )
     setmetatable( c, self )
     self.__index = self
 
+    if type( r ) == "string" then
+        return self.colors[r]:copy()
+    end
+
     c.r, c.g, c.b, c.a, c.name = r, g, b, a, name
     return c
 end
@@ -26,6 +30,33 @@ function Color:toCMYK()
 end
 
 function Color.combine( first, second )
+    if first.name == second.name then
+        local c = first:copy()
+        c.a = math.min( 255, first.a + second.a )
+        return c
+    else
+        if first.name == "red" then
+            if second.name == "yellow" then
+                return Color.colors.orange:copy()
+            elseif second.name == "blue" then
+                return Color.colors.purple:copy()
+            end
+        elseif first.name == "yellow" then
+            if second.name == "red" then
+                return Color.colors.orange:copy()
+            elseif second.name == "blue" then
+                return Color.colors.green:copy()
+            end
+        elseif first.name == "blue" then
+            if second.name == "yellow" then
+                return Color.colors.green:copy()
+            elseif second.name == "red" then
+                return Color.colors.purple:copy()
+            end
+        end
+    end
+
+    print( string.format( "Doing CMYK conversion for '%s' (%d, %d, %d) -> '%s' (%d, %d, %d)", first.name, first.r, first.g, first.b, second.name, second.r, second.g, second.b ) )
     -- Convert both to CMYK
     local c1 = first:toCMYK()
     local c2 = second:toCMYK()
@@ -56,3 +87,15 @@ end
 function Color:copy()
     return Color:new( self.r, self.g, self.b, self.a, self.name )
 end
+
+Color.colors = {
+    red = Color:new( 255, 0, 0, 255, "red" ),
+    yellow = Color:new( 255, 255, 0, 255, "yellow" ),
+    orange = Color:new( 255, 150, 60, 255, "orange" ),
+    blue = Color:new( 0, 100, 255, 255, "blue" ),
+    purple = Color:new( 190, 40, 255, 255, "purple" ),
+    green = Color:new( 0, 255, 0, 255, "green" ),
+    white = Color:new( 255, 255, 255, 255, "white" ),
+    black = Color:new( 0, 0, 0, 255, "black" )
+}
+

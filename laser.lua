@@ -2,14 +2,7 @@ require "vector"
 require "effects"
 require "color"
 
-Laser = {
-    colors = {
-        Color:new( 65, 255, 96, 255, "green" ),
-        Color:new( 0, 96, 255, 255, "red" ),
-        Color:new( 248, 255, 64, 255, "yellow" ),
-        Color:new( 255, 128, 101, 255, "red" )
-    }
-}
+Laser = {}
 
 function Laser:new( pos, dir, player )
     local l = {}

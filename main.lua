@@ -136,6 +136,22 @@ function love.draw()
 
     p1:draw()
     drawStats()
+
+    --[[
+    love.graphics.setColor( Color.colors.red:toarray() )
+    love.graphics.rectangle( "fill", 100, 100, 100, 100 )
+    love.graphics.setColor( Color.colors.yellow:toarray() )
+    love.graphics.rectangle( "fill", 210, 100, 100, 100 )
+    love.graphics.setColor( Color.colors.blue:toarray() )
+    love.graphics.rectangle( "fill", 320, 100, 100, 100 )
+    love.graphics.setColor( Color.colors.orange:toarray() )
+    love.graphics.rectangle( "fill", 100, 210, 100, 100 )
+    love.graphics.setColor( Color.colors.purple:toarray() )
+    love.graphics.rectangle( "fill", 210, 210, 100, 100 )
+    love.graphics.setColor( Color.colors.green:toarray() )
+    love.graphics.rectangle( "fill", 320, 210, 100, 100 )
+    --]]
+
 end
 
 --------------
@@ -150,6 +166,16 @@ end
 function love.joystickremoved( joystick )
     if joystick == p1.joystick then
         p1.joystick = nil
+    end
+end
+
+function love.keypressed( key )
+    if key == "q" then
+        p1:prevColor()
+    end
+
+    if key == "e" then
+        p1:nextColor()
     end
 end
 
@@ -179,6 +205,13 @@ function love.gamepadpressed( joystick, button )
     end
     if button == "b" then
         p1:changeColor( 4 )
+    end
+
+    if button == "leftshoulder" then
+        p1:prevColor()
+    end
+    if button == "rightshoulder" then
+        p2:nextColor()
     end
 
 end

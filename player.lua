@@ -2,7 +2,9 @@ require "vector"
 require "laser"
 require "color"
 
-Player = {}
+Player = {
+    colors = { "red", "yellow", "blue" }
+}
 
 function Player:new( x, y, joystick, colorIndex, maxHP )
     local p = {}
@@ -20,14 +22,15 @@ function Player:new( x, y, joystick, colorIndex, maxHP )
     p.maxHP = maxHP or 4
     p.hp = p.maxHP
     p.score = 0
-    p.color = Laser.colors[colorIndex or 1]:copy()
+    p.colorIndex = colorIndex or 1
+    p:changeColor( p.colorIndex )
 
     p.death = {
         diedAt = 0,
         duration = 0,
         max_duration = 1.6,
         rot = 0,
-        color = Color:new( 255, 255, 255, 255, "white" )
+        color = Color:new( "white" )
     }
 
     return p
@@ -162,10 +165,14 @@ function Player:explode()
 
     local density = 8 * (self.death.duration * 1.1)
     local dec = 8
+    local availableColors = {}
+    for k, v in pairs( Color.colors ) do
+        availableColors[ #availableColors+1 ] = k
+    end
     for i = 1, density do
-        local c = Laser.colors[love.math.random( 1, #Laser.colors )]:copy()
-        local len = love.math.random( 4, 16 )
-        local dens = love.math.random( 6, 32 )
+        local c = Color.colors[ availableColors[ love.math.random( 1, #availableColors ) ] ]
+        local len = love.math.random( 4, 12 )
+        local dens = love.math.random( 8, 28 )
         effects[#effects + 1] = Spark:new( self.pos, randomDir( self.dir ), c, dec, len, dens )
     end
     self.lastExplosion = love.timer.getTime()
@@ -225,5 +232,22 @@ function Player:addScore( s )
 end
 
 function Player:changeColor( index )
-    self.color = Laser.colors[index]:copy()
+    self.colorIndex = index
+    self.color = Color.colors[Player.colors[index]]
+end
+
+function Player:prevColor()
+    local i = self.colorIndex - 1
+    if i < 1 then
+        i = #Player.colors
+    end
+    self:changeColor( i )
+end
+
+function Player:nextColor()
+    local i = self.colorIndex + 1
+    if i > #Player.colors then
+        i = 1
+    end
+    self:changeColor( i )
 end

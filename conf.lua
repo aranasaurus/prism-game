@@ -5,7 +5,7 @@ function love.conf( t )
     t.version = "0.9.1"
     t.author = "@aranasaurus"
 
-    t.window.highdpi = true
+    t.window.highdpi = false
     t.window.title = "LightBox"
     t.window.width = 1280
     t.window.height = 720
