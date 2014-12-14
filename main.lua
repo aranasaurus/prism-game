@@ -63,22 +63,18 @@ end
 -- Players --
 -------------
 
-function renderPlayers( canvas )
-    love.graphics.setCanvas( canvas )
+function drawPlayers()
     p1:draw()
-    love.graphics.setCanvas()
 end
 
 ------------
 -- Lasers --
 ------------
 
-function renderLasers( canvas )
-    love.graphics.setCanvas( canvas )
+function drawLasers()
     for _, l in pairs( lasers ) do
         l:draw()
     end
-    love.graphics.setCanvas()
 end
 
 function updateLasers( dt )
@@ -91,12 +87,10 @@ end
 -- Effects --
 -------------
 
-function renderEffects( canvas )
-    love.graphics.setCanvas( canvas )
+function drawEffects()
     for _, e in pairs( effects ) do
         e:draw()
     end
-    love.graphics.setCanvas()
 end
 
 function updateEffects( dt )
@@ -116,17 +110,13 @@ end
 -------------
 -- Enemies --
 -------------
-function renderEnemies( canvas )
-    love.graphics.setCanvas( canvas )
-    love.graphics.setCanvas()
+function drawEnemies()
 end
 
 -----------
 -- Buffs --
 -----------
-function renderBuffs( canvas )
-    love.graphics.setCanvas( canvas )
-    love.graphics.setCanvas()
+function drawBuffs()
 end
 
 ----------
@@ -155,11 +145,11 @@ function love.draw()
     canvases.entities:clear()
     canvases.glow:clear()
 
-    renderLasers( canvases.effects )
-    renderEffects( canvases.effects )
-    renderEnemies( canvases.entities )
-    renderBuffs( canvases.entities )
-    renderPlayers( canvases.entities )
+    canvases.effects:renderTo( drawLasers )
+    canvases.effects:renderTo( drawEffects )
+    canvases.entities:renderTo( drawEnemies )
+    canvases.entities:renderTo( drawBuffs )
+    canvases.entities:renderTo( drawPlayers )
 
     -- reset stuff to defaults
     love.graphics.setCanvas()
