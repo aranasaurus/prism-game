@@ -2,6 +2,7 @@ require "vector"
 require "color"
 
 Spark = {}
+FloatingText = {}
 
 function Spark:new( pos, dir, color, decay, length, density )
     local e = {}
@@ -53,6 +54,34 @@ function Spark:draw()
     end
 
     love.graphics.pop()
+end
+
+function FloatingText:new( text, color, startPos, endPos )
+    local e = {}
+    setmetatable( e, self )
+    self.__index = self
+
+    e.text = text
+    e.color = color:copy()
+    e.pos = startPos:copy()
+    local endPos = endPos or startPos:add( Vector:new( 0, -240 ) )
+    e.vel = endPos:subtract( startPos )
+
+    return e
+end
+
+function FloatingText:draw()
+    love.graphics.push()
+    love.graphics.origin()
+
+    love.graphics.setColor( self.color:toarray() )
+    love.graphics.printf( self.text, self.pos.x, self.pos.y, 100, "left" )
+
+    love.graphics.pop()
+end
+
+function FloatingText:update( dt )
+    self.pos = self.pos:add( self.vel:multiply( dt ) )
 end
 
 -----------

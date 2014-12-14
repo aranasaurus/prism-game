@@ -56,7 +56,6 @@ function Color.combine( first, second )
         end
     end
 
-    print( string.format( "Doing CMYK conversion for '%s' (%d, %d, %d) -> '%s' (%d, %d, %d)", first.name, first.r, first.g, first.b, second.name, second.r, second.g, second.b ) )
     -- Convert both to CMYK
     local c1 = first:toCMYK()
     local c2 = second:toCMYK()

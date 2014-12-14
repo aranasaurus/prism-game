@@ -6,7 +6,7 @@ Player = {
     colors = { "red", "yellow", "blue" }
 }
 
-function Player:new( x, y, joystick, colorIndex, maxHP )
+function Player:new( x, y, joystick, color, shieldColorIndex, maxShields, maxHP )
     local p = {}
     setmetatable( p, self )
     self.__index = self
@@ -14,16 +14,30 @@ function Player:new( x, y, joystick, colorIndex, maxHP )
     p.pos = Vector:new( x, y )
     p.vel = Vector:new( 0, 0 )
     p.dir = Vector:new( 1, 0 )
-    p.w = 32
+    p.w = 48
     p.h = math.floor( p.w * 9/16 )
     p.joystick = joystick
     p.fireRate = 0.1 -- seconds
     p.lastFired = 0
-    p.maxHP = maxHP or 4
+    p.maxShields = maxShields or 8
+    p.maxHP = maxHP or 1
+    p.shields = p.maxShields
     p.hp = p.maxHP
     p.score = 0
-    p.colorIndex = colorIndex or 1
-    p:changeColor( p.colorIndex )
+    if type( color ) == "string" then
+        for i, c in ipairs( Player.colors ) do
+            if c == color then
+                p:changeColor( i )
+                break
+            end
+        end
+
+        p.color = Color.colors[ color ]:copy()
+    else
+        p:changeColor( color or 1 )
+    end
+    p.shieldColorIndex = shieldColorIndex or 2
+    p:changeShieldColor( p.shieldColorIndex )
 
     p.death = {
         diedAt = 0,
@@ -39,21 +53,32 @@ end
 function Player:draw()
     love.graphics.push()
     love.graphics.translate( self.pos.x, self.pos.y )
-    love.graphics.rotate( self.dir:angle() )
 
     if self.dead then
         love.graphics.scale( self.death.scale )
         love.graphics.rotate( self.death.rot )
-        love.graphics.setColor( self.death.color:toarray() )
-        love.graphics.polygon( "fill", -self.w/2, -self.h/2, self.w/2, 0, -self.w/2, self.h/2 )
-        love.graphics.pop()
-        return
+    else
+        love.graphics.rotate( self.dir:angle() )
     end
+
+
+    local c = self.shieldColor:copy()
+    c.a = math.max(c.a * (self.shields/self.maxShields)/2, 0)
+    love.graphics.setColor( c:toarray() )
+    love.graphics.circle( "fill", 0, 0, math.max(self.w, self.h)/2 + 4 )
+
+    local back = -self.w/2
+    local front = self.w/2 - 4
+    local top = -self.h/4
+    local bottom = self.h/4
     love.graphics.setColor( self.color:toarray() )
-    love.graphics.setLineWidth( 3 )
-    love.graphics.polygon( "line", -self.w/2, -self.h/2, self.w/2, 0, -self.w/2, self.h/2 )
-    love.graphics.setColor( 255, 255, 255, (255 * (self.hp/self.maxHP)) )
-    love.graphics.polygon( "fill", -self.w/2, -self.h/2, self.w/2, 0, -self.w/2, self.h/2 )
+    love.graphics.polygon( "fill", back, top, front, 0, back, bottom )
+
+    love.graphics.setColor( self.shieldColor:toarray() )
+    local lw = 2
+    love.graphics.setLineWidth( lw )
+    love.graphics.polygon( "line", back, top, front, 0, back, bottom )
+
     if self.debugText ~= nil then
         love.graphics.setColor( 255, 255, 255 )
         love.graphics.printf( self.debugText, -self.w/2, -self.h*2, self.w * 8, "left", 0, love.window.getPixelScale(), love.window.getPixelScale() )
@@ -89,9 +114,9 @@ function Player:update( dt )
 
         if rightInput:length() < DEAD_ZONE then
             rightInput = self.dir
+        else
+            firing = true
         end
-
-        firing = self.joystick:getGamepadAxis( "triggerright" ) > DEAD_ZONE
     else
         if love.keyboard.isDown( "w" ) then
             leftInput.y = -0.9
@@ -133,20 +158,33 @@ function Player:update( dt )
     self.pos.y = math.min( self.pos.y, H - sz )
     self.pos.y = math.max( self.pos.y, sz )
 
+    local firedLaser = {}
     if firing then
-        self:fire()
+        firedLaser = self:fire()
     end
     for i, l in ipairs( lasers ) do
-        -- Only lasers that are not our color
-        if l.name ~= self.color.name and self:collidingWithLaser( l ) then
-            if l.color.name ~= self.color.name then
-                self.hp = self.hp - 1
-                l:die( true, l.color )
+        if l ~= firedLaser and self:collidingWithLaser( l ) then
+            if self.shields > 0 then
+                -- take shield damage
+                if l.color.name ~= self.shieldColor.name then
+                    self.shields = self.shields - l:getDamage( self.shieldColor )
+                    l:die( true, l.color:combine( self.shieldColor ) )
 
-                if self.hp <= 0 then
-                    self:die()
+                    if self.shields < 1 and self.shieldColorIndex ~= self.colorIndex then
+                        self:changeShieldColor( self.colorIndex )
+                    end
+                end
+            else
+                -- take hp damage
+                if l.color.name ~= self.color.name then
+                    self.hp = self.hp - l:getDamage( self.color )
+                    l:die( true, l.color:combine( self.color ) )
                 end
             end
+        end
+
+        if self.hp <= 0 then
+            self:die()
         end
     end
 end
@@ -181,7 +219,7 @@ end
 function Player:fire()
     if self:canFire() then
         local l = Laser:new( self.pos:add( self.dir:multiply( math.ceil( self.w * 0.8 ) ) ), self.dir, self )
-        table.insert( lasers, l )
+        lasers[ #lasers + 1 ] = l
         self.lastFired = love.timer.getTime()
         return l
     end
@@ -213,35 +251,13 @@ function Player:collidingWithLaser( laser )
     return false
 end
 
-function Player:bbox()
-    local horizontal = self.dir:multiply( self.w/2 )
-    local vertical = self.dir:turnLeft():multiply( self.h/2 )
-    local top = self.pos:subtract( vertical )
-    local bot = self.pos:add( vertical )
-
-    return {
-        top:subtract( horizontal ),
-        top:add( horizontal ),
-        bot:add( horizontal ),
-        bot:subtract( horizontal )
-    }
-end
-
 function Player:addScore( s )
     self.score = self.score + s
 end
 
 function Player:changeColor( index )
     self.colorIndex = index
-    self.color = Color.colors[Player.colors[index]]
-end
-
-function Player:prevColor()
-    local i = self.colorIndex - 1
-    if i < 1 then
-        i = #Player.colors
-    end
-    self:changeColor( i )
+    self.color = Color.colors[ Player.colors[index] ]:copy()
 end
 
 function Player:nextColor()
@@ -250,4 +266,24 @@ function Player:nextColor()
         i = 1
     end
     self:changeColor( i )
+    if self.shields < 1 then
+        self:changeShieldColor( i )
+    end
 end
+
+function Player:changeShieldColor( index )
+    self.shieldColorIndex = index
+    self.shieldColor = Color.colors[Player.colors[index]]:copy()
+end
+
+function Player:nextShieldColor()
+    local i = self.shieldColorIndex + 1
+    if i > #Player.colors then
+        i = 1
+    end
+    self:changeShieldColor( i )
+    if self.shields < 1 then
+        self:changeColor( i )
+    end
+end
+

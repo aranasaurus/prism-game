@@ -55,7 +55,7 @@ end
 function createPlayer()
     local sticks = love.joystick.getJoysticks()
 
-    p1 = Player:new( W/2, H/2, sticks[1] )
+    p1 = Player:new( W/2, H/2, sticks[1], p1.colorIndex, p1.shieldColorIndex )
 end
 
 ------------
@@ -171,11 +171,11 @@ end
 
 function love.keypressed( key )
     if key == "q" then
-        p1:prevColor()
+        p1:nextColor()
     end
 
     if key == "e" then
-        p1:nextColor()
+        p1:nextShieldColor()
     end
 end
 
@@ -194,24 +194,11 @@ function love.gamepadpressed( joystick, button )
         reset()
     end
 
-    if button == "a" then
-        p1:changeColor( 1 )
-    end
-    if button == "x" then
-        p1:changeColor( 2 )
-    end
-    if button == "y" then
-        p1:changeColor( 3 )
-    end
-    if button == "b" then
-        p1:changeColor( 4 )
-    end
-
     if button == "leftshoulder" then
-        p1:prevColor()
+        p1:nextColor()
     end
     if button == "rightshoulder" then
-        p2:nextColor()
+        p1:nextShieldColor()
     end
 
 end

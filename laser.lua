@@ -11,10 +11,9 @@ function Laser:new( pos, dir, player )
 
     l.pos = pos:copy()
     l.dir = dir:normalize()
-    l.color = player.color:copy()
+    l.color = player.color:combine( player.shieldColor )
     l.w = 24
     l.h = 4
-    l.value = 1
     l.player = player
 
     return l
@@ -60,8 +59,11 @@ function Laser:update( dt, i )
         if i ~= j then
             if self:colliding( o ) then
                 if self.color.name ~= o.color.name then
-                    self.player:addScore( self.value )
-                    o.player:addScore( o.value )
+                    local s1 = self:getDamage( o.color )
+                    local s2 = o:getDamage( self.color )
+                    self.player:addScore( s1 )
+                    o.player:addScore( s2 )
+                    effects[ #effects+1 ] = FloatingText:new( "+".. s1 + s2, self.color:combine( o.color ), self.pos ) --, self.player.pos )
                 end
                 self:die( true, o.color )
                 o:die()
@@ -95,5 +97,47 @@ end
 function Laser:lineSegment()
     local hl = self.dir:multiply( self.w/2 )
     return { self.pos:subtract( hl ), self.pos:add( hl ) }
+end
+
+function Laser:getDamage( c )
+    if self.color.name == "orange" then
+        if c.name == "red" or c.name == "yellow" then
+            return 1
+        else
+            return 2
+        end
+    elseif self.color.name == "purple" then
+        if c.name == "red" or c.name == "blue" then
+            return 1
+        else
+            return 2
+        end
+    elseif self.color.name == "green" then
+        if c.name == "yellow" or c.name == "blue" then
+            return 1
+        else
+            return 2
+        end
+    elseif self.color.name == "red" then
+        if c.name == "orange" or c.name == "purple" then
+            return 1
+        else
+            return 2
+        end
+    elseif self.color.name == "blue" then
+        if c.name == "purple" or c.name == "green" then
+            return 1
+        else
+            return 2
+        end
+    elseif self.color.name == "yellow" then
+        if c.name == "green" or c.name == "orange" then
+            return 1
+        else
+            return 2
+        end
+    end
+
+    return 2
 end
 
