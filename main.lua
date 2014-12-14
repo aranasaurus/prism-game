@@ -6,6 +6,7 @@ DEAD_ZONE = 0.2
 MAX_PLAYER_VEL = 800
 LASER_VEL = MAX_PLAYER_VEL * 1.33
 
+local canvases = {}
 local bg = {}
 local bg_sx = 1
 local bg_sy = 1
@@ -58,14 +59,26 @@ function createPlayer()
     p1 = Player:new( W/2, H/2, sticks[1], p1.colorIndex, p1.shieldColorIndex )
 end
 
+-------------
+-- Players --
+-------------
+
+function renderPlayers( canvas )
+    love.graphics.setCanvas( canvas )
+    p1:draw()
+    love.graphics.setCanvas()
+end
+
 ------------
 -- Lasers --
 ------------
 
-function drawLasers()
+function renderLasers( canvas )
+    love.graphics.setCanvas( canvas )
     for _, l in pairs( lasers ) do
         l:draw()
     end
+    love.graphics.setCanvas()
 end
 
 function updateLasers( dt )
@@ -78,10 +91,12 @@ end
 -- Effects --
 -------------
 
-function drawEffects()
+function renderEffects( canvas )
+    love.graphics.setCanvas( canvas )
     for _, e in pairs( effects ) do
         e:draw()
     end
+    love.graphics.setCanvas()
 end
 
 function updateEffects( dt )
@@ -101,13 +116,17 @@ end
 -------------
 -- Enemies --
 -------------
-function drawEnemies()
+function renderEnemies( canvas )
+    love.graphics.setCanvas( canvas )
+    love.graphics.setCanvas()
 end
 
 -----------
 -- Buffs --
 -----------
-function drawBuffs()
+function renderBuffs( canvas )
+    love.graphics.setCanvas( canvas )
+    love.graphics.setCanvas()
 end
 
 ----------
@@ -115,6 +134,11 @@ end
 ----------
 function love.load( arg ) 
     W, H = love.window.getDimensions()
+    canvases = {
+        effects = love.graphics.newCanvas(),
+        entities = love.graphics.newCanvas(),
+        glow = love.graphics.newCanvas()
+    }
     loadBG( bg_index )
     reset()
 end
@@ -127,17 +151,31 @@ function love.update( dt )
 end
 
 function love.draw()
-    love.graphics.setColor( 255, 255, 255, 255 * 0.28 )
-    love.graphics.draw( bg, 0, 0, 0, bg_sx, bg_sy )
-    drawLasers()
-    drawEffects()
-    drawEnemies()
-    drawBuffs()
+    canvases.effects:clear()
+    canvases.entities:clear()
+    canvases.glow:clear()
 
-    p1:draw()
+    renderLasers( canvases.effects )
+    renderEffects( canvases.effects )
+    renderEnemies( canvases.entities )
+    renderBuffs( canvases.entities )
+    renderPlayers( canvases.entities )
+
+    -- reset stuff to defaults
+    love.graphics.setCanvas()
+    love.graphics.setBlendMode( "alpha" )
+    love.graphics.setShader()
+    love.graphics.setColor( 255, 255, 255 )
+
+    drawBG()
+
+    love.graphics.draw( canvases.entities, 0, 0 )
+    love.graphics.draw( canvases.effects, 0, 0 )
+    love.graphics.draw( canvases.glow, 0, 0 )
+
     drawStats()
 
-    --[[
+    --[[ Color tests
     love.graphics.setColor( Color.colors.red:toarray() )
     love.graphics.rectangle( "fill", 100, 100, 100, 100 )
     love.graphics.setColor( Color.colors.yellow:toarray() )
@@ -203,6 +241,10 @@ function love.gamepadpressed( joystick, button )
 
 end
 
+-------
+-- BG -
+-------
+
 function nextBG()
     bg_index = bg_index + 1
     if bg_index > 5 then
@@ -225,3 +267,9 @@ function loadBG()
     bg_sy = H / bg:getHeight()
 end
 
+function drawBG()
+    love.graphics.draw( bg, 0, 0, 0, bg_sx, bg_sy )
+    love.graphics.setColor( 0, 0, 0, 255 * 0.58 )
+    love.graphics.rectangle( "fill", 0, 0, W, H )
+    love.graphics.setColor( 255, 255, 255 )
+end
