@@ -1,6 +1,7 @@
 require "vector"
 require "player"
 require "laser"
+require "bloom"
 
 DEAD_ZONE = 0.2
 MAX_PLAYER_VEL = 800
@@ -12,6 +13,7 @@ local bg_sx = 1
 local bg_sy = 1
 local bg_index = 1
 local p1 = {}
+local paused = false
 lasers = {}
 effects = {}
 enemies = {}
@@ -45,9 +47,88 @@ function drawStats()
     end
 end
 
+----------
+-- Löve --
+----------
+
+function love.load( arg )
+    W, H = love.window.getDimensions()
+    canvases = {
+        effects = love.graphics.newCanvas(),
+        entities = love.graphics.newCanvas()
+    }
+    loadBG( bg_index )
+    reset()
+    bloom = CreateBloomEffect( W/4, H/4 )
+    bloom:setIntensity( 1, 0.459 )
+    bloom:setSaturation( 1, 4 )
+    bloom:setThreshold( 0.0 )
+
+    love.graphics.setLineJoin( "miter" )
+end
+
+function love.update( dt )
+    t = t + dt
+    if paused then return end
+    p1:update( dt )
+    updateLasers( dt )
+    updateEffects( dt )
+end
+
+function love.draw()
+    canvases.effects:clear()
+    canvases.entities:clear()
+
+    canvases.effects:renderTo( drawLasers )
+    canvases.effects:renderTo( drawEffects )
+    canvases.entities:renderTo( drawEnemies )
+    canvases.entities:renderTo( drawBuffs )
+    canvases.entities:renderTo( drawPlayers )
+
+    local color_tests = function()
+        if true then return end
+        local w, h = 24, 4
+        -- Color tests
+        love.graphics.setColor( Color.colors.red:toarray() )
+        love.graphics.rectangle( "fill", 100, 100, w, h )
+        love.graphics.setColor( Color.colors.yellow:toarray() )
+        love.graphics.rectangle( "fill", 250, 100, w, h )
+        love.graphics.setColor( Color.colors.blue:toarray() )
+        love.graphics.rectangle( "fill", 400, 100, w, h )
+        love.graphics.setColor( Color.colors.orange:toarray() )
+        love.graphics.rectangle( "fill", 100, 250, w, h )
+        love.graphics.setColor( Color.colors.purple:toarray() )
+        love.graphics.rectangle( "fill", 250, 250, w, h )
+        love.graphics.setColor( Color.colors.green:toarray() )
+        love.graphics.rectangle( "fill", 400, 250, w, h )
+        love.graphics.setColor( 255, 255, 255 )
+    end
+    canvases.effects:renderTo( color_tests )
+
+    -- reset stuff to defaults
+    love.graphics.setCanvas()
+    love.graphics.setBlendMode( "alpha" )
+    love.graphics.setShader()
+    love.graphics.setColor( 255, 255, 255 )
+
+    drawBG()
+    drawStats()
+
+    love.graphics.draw( canvases.entities, 0, 0 )
+    love.graphics.draw( canvases.effects, 0, 0 )
+    bloom:predraw()
+    bloom:enabledrawtobloom()
+    drawLasers()
+    drawEffects()
+    color_tests()
+    bloom:postdraw()
+
+end
+
 ----------------
 -- Game Logic --
 ----------------
+
 function reset()
     createPlayer()
     lasers = {}
@@ -110,81 +191,21 @@ end
 -------------
 -- Enemies --
 -------------
+
 function drawEnemies()
 end
 
 -----------
 -- Buffs --
 -----------
+
 function drawBuffs()
-end
-
-----------
--- Löve --
-----------
-function love.load( arg ) 
-    W, H = love.window.getDimensions()
-    canvases = {
-        effects = love.graphics.newCanvas(),
-        entities = love.graphics.newCanvas(),
-        glow = love.graphics.newCanvas()
-    }
-    loadBG( bg_index )
-    reset()
-end
-
-function love.update( dt )
-    t = t + dt
-    p1:update( dt )
-    updateLasers( dt )
-    updateEffects( dt )
-end
-
-function love.draw()
-    canvases.effects:clear()
-    canvases.entities:clear()
-    canvases.glow:clear()
-
-    canvases.effects:renderTo( drawLasers )
-    canvases.effects:renderTo( drawEffects )
-    canvases.entities:renderTo( drawEnemies )
-    canvases.entities:renderTo( drawBuffs )
-    canvases.entities:renderTo( drawPlayers )
-
-    -- reset stuff to defaults
-    love.graphics.setCanvas()
-    love.graphics.setBlendMode( "alpha" )
-    love.graphics.setShader()
-    love.graphics.setColor( 255, 255, 255 )
-
-    drawBG()
-
-    love.graphics.draw( canvases.entities, 0, 0 )
-    love.graphics.draw( canvases.effects, 0, 0 )
-    love.graphics.draw( canvases.glow, 0, 0 )
-
-    drawStats()
-
-    --[[ Color tests
-    love.graphics.setColor( Color.colors.red:toarray() )
-    love.graphics.rectangle( "fill", 100, 100, 100, 100 )
-    love.graphics.setColor( Color.colors.yellow:toarray() )
-    love.graphics.rectangle( "fill", 210, 100, 100, 100 )
-    love.graphics.setColor( Color.colors.blue:toarray() )
-    love.graphics.rectangle( "fill", 320, 100, 100, 100 )
-    love.graphics.setColor( Color.colors.orange:toarray() )
-    love.graphics.rectangle( "fill", 100, 210, 100, 100 )
-    love.graphics.setColor( Color.colors.purple:toarray() )
-    love.graphics.rectangle( "fill", 210, 210, 100, 100 )
-    love.graphics.setColor( Color.colors.green:toarray() )
-    love.graphics.rectangle( "fill", 320, 210, 100, 100 )
-    --]]
-
 end
 
 --------------
 -- Controls --
 --------------
+
 function love.joystickadded( joystick )
     if p1.joystick == nil or not p1.joystick:isConnected() then
         p1.joystick = joystick
@@ -204,6 +225,12 @@ function love.keypressed( key )
 
     if key == "e" then
         p1:nextShieldColor()
+    end
+
+    if key == " " then
+        paused = not paused
+        print( love.graphics.getLineStyle() )
+        print( love.graphics.getLineJoin() )
     end
 end
 
@@ -227,6 +254,10 @@ function love.gamepadpressed( joystick, button )
     end
     if button == "rightshoulder" then
         p1:nextShieldColor()
+    end
+
+    if button == "start" then
+        paused = not paused
     end
 
 end
