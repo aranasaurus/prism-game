@@ -59,13 +59,13 @@ function Player:draw()
         love.graphics.rotate( self.death.rot )
     else
         love.graphics.rotate( self.dir:angle() )
+        love.graphics.setColor( self.shieldColor:toarray() )
+        love.graphics.setLineWidth( 2 )
+        local c = self.shieldColor:copy()
+        c.a = math.max(c.a * (self.shields/self.maxShields)/1.8, 0)
+        love.graphics.setColor( c:toarray() )
+        love.graphics.circle( "fill", 0, 0, math.max(self.w, self.h)/2 + 4 )
     end
-
-
-    local c = self.shieldColor:copy()
-    c.a = math.max(c.a * (self.shields/self.maxShields)/2, 0)
-    love.graphics.setColor( c:toarray() )
-    love.graphics.circle( "fill", 0, 0, math.max(self.w, self.h)/2 + 4 )
 
     local back = -self.w/2
     local front = self.w/2 - 4
@@ -73,11 +73,6 @@ function Player:draw()
     local bottom = self.h/4
     love.graphics.setColor( self.color:toarray() )
     love.graphics.polygon( "fill", back, top, front, 0, back, bottom )
-
-    love.graphics.setColor( self.shieldColor:toarray() )
-    local lw = 2
-    love.graphics.setLineWidth( lw )
-    love.graphics.polygon( "line", back, top, front, 0, back, bottom )
 
     if self.debugText ~= nil then
         love.graphics.setColor( 255, 255, 255 )

@@ -7,6 +7,7 @@ DEAD_ZONE = 0.2
 MAX_PLAYER_VEL = 800
 LASER_VEL = MAX_PLAYER_VEL * 1.33
 
+local colorTestRender = false
 local canvases = {}
 local bg = {}
 local bg_sx = 1
@@ -60,9 +61,9 @@ function love.load( arg )
     loadBG( bg_index )
     reset()
     bloom = CreateBloomEffect( W/4, H/4 )
-    bloom:setIntensity( 1, 0.459 )
-    bloom:setSaturation( 1, 4 )
-    bloom:setThreshold( 0.0 )
+    bloom:setIntensity( 1, 2 )
+    bloom:setSaturation( 1, 2 )
+    bloom:setThreshold( 0.1 )
 
     love.graphics.setLineJoin( "miter" )
 end
@@ -86,7 +87,7 @@ function love.draw()
     canvases.entities:renderTo( drawPlayers )
 
     local color_tests = function()
-        if true then return end
+        if not colorTestRender then return end
         local w, h = 24, 4
         -- Color tests
         love.graphics.setColor( Color.colors.red:toarray() )
@@ -103,7 +104,9 @@ function love.draw()
         love.graphics.rectangle( "fill", 400, 250, w, h )
         love.graphics.setColor( 255, 255, 255 )
     end
-    canvases.effects:renderTo( color_tests )
+    if colorTestRender then
+        canvases.effects:renderTo( color_tests )
+    end
 
     -- reset stuff to defaults
     love.graphics.setCanvas()
@@ -116,11 +119,17 @@ function love.draw()
 
     love.graphics.draw( canvases.entities, 0, 0 )
     love.graphics.draw( canvases.effects, 0, 0 )
+
     bloom:predraw()
     bloom:enabledrawtobloom()
-    drawLasers()
-    drawEffects()
-    color_tests()
+    love.graphics.draw( canvases.effects, 0, 0 )
+
+    local c = p1.shieldColor:toarray()
+    if p1.shields <= 0 then
+        c[4] = 0
+    end
+    love.graphics.setColor( c )
+    love.graphics.circle( "line", p1.pos.x, p1.pos.y, p1.w/2 )
     bloom:postdraw()
 
 end
@@ -229,6 +238,9 @@ function love.keypressed( key )
 
     if key == " " then
         paused = not paused
+    end
+    if key == "\\" then
+        colorTestRender = not colorTestRender
         print( love.graphics.getLineStyle() )
         print( love.graphics.getLineJoin() )
     end
