@@ -13,7 +13,7 @@ function Player:new( x, y, joystick, color, shieldColorIndex, maxShields, maxHP 
 
     p.pos = Vector:new( x, y )
     p.vel = Vector:new( 0, 0 )
-    p.dir = Vector:new( 1, 0 )
+    p.rot = 0
     p.w = 48
     p.h = math.floor( p.w * 9/16 )
     p.joystick = joystick
@@ -58,7 +58,7 @@ function Player:draw()
         love.graphics.scale( self.death.scale )
         love.graphics.rotate( self.death.rot )
     else
-        love.graphics.rotate( self.dir:angle() )
+        love.graphics.rotate( self.rot )
         love.graphics.setColor( self.shieldColor:toarray() )
         love.graphics.setLineWidth( 2 )
         local c = self.shieldColor:copy()
@@ -96,22 +96,21 @@ function Player:update( dt )
 
     -- Gather inputs
     local leftInput = Vector:new( 0, 0 )
-    local rightInput = Vector:new( 0, 0 )
+    local r = self.rot
     local firing = false
 
     if self.joystick ~= nil then
         leftInput.x, leftInput.y = self.joystick:getGamepadAxis( "leftx" ), self.joystick:getGamepadAxis( "lefty" )
-        rightInput.x, rightInput.y = self.joystick:getGamepadAxis( "rightx" ), self.joystick:getGamepadAxis( "righty" )
+        local rightInput = Vector:new( self.joystick:getGamepadAxis( "rightx" ), self.joystick:getGamepadAxis( "righty" ) )
 
         if leftInput:length() < DEAD_ZONE then
             leftInput.x, leftInput.y = 0, 0
         end
 
-        if rightInput:length() < DEAD_ZONE then
-            rightInput = self.dir
-        else
+        if rightInput:length() > DEAD_ZONE then
             firing = true
         end
+        r = rightInput:angle()
     else
         if love.keyboard.isDown( "w" ) then
             leftInput.y = -0.9
@@ -126,24 +125,28 @@ function Player:update( dt )
             leftInput.x = 0.9
         end
 
-        rightInput = self.dir
         if love.keyboard.isDown( "up" ) then
             firing = true
         end
         if love.keyboard.isDown( "left" ) then
-            rightInput = rightInput:rotate( -math.pi / 24 )
+            r = r - math.pi/24
         end
         if love.keyboard.isDown( "right" ) then
-            rightInput = rightInput:rotate( math.pi / 24 )
+            r = r + math.pi / 24
         end
         if love.keyboard.isDown( "down" ) then
-            firing = true
+            if not self.flipped then
+                r = r + math.pi
+                self.flipped = true
+            end
+        else
+            self.flipped = false
         end
     end
 
     -- Update state with inputs
     self.vel = leftInput:multiply( MAX_PLAYER_VEL * dt )
-    self.dir = rightInput:normalize()
+    self.rot = r
     self.pos = self.pos:add( self.vel )
 
     -- Keep it on screen
@@ -206,14 +209,15 @@ function Player:explode()
         local c = Color.colors[ availableColors[ love.math.random( 1, #availableColors ) ] ]
         local len = love.math.random( 4, 12 )
         local dens = love.math.random( 8, 28 )
-        effects[#effects + 1] = Spark:new( self.pos, randomDir( self.dir ), c, dec, len, dens )
+        effects[#effects + 1] = Spark:new( self.pos, randomDir( Vector:new( 1, 0 ):rotate( self.rot ) ), c, dec, len, dens )
     end
     self.lastExplosion = love.timer.getTime()
 end
 
 function Player:fire()
     if self:canFire() then
-        local l = Laser:new( self.pos:add( self.dir:multiply( math.ceil( self.w * 0.8 ) ) ), self.dir, self )
+        local dir = Vector:new( self.w * 0.85, 0 ):rotate( self.rot )
+        local l = Laser:new( self.pos:add( dir ), dir, self )
         lasers[ #lasers + 1 ] = l
         self.lastFired = love.timer.getTime()
         return l
