@@ -16,7 +16,27 @@ function Laser:new( pos, dir, player )
     l.h = 4
     l.player = player
 
+    l:loadSprite()
+
     return l
+end
+
+function Laser:loadSprite( img )
+    if img then
+        self.sprite = img
+        return
+    end
+
+    self.sprite = love.graphics.newCanvas( self.w, self.h )
+
+    love.graphics.push()
+    love.graphics.origin()
+    love.graphics.setCanvas( self.sprite )
+    love.graphics.setColor( self.color:toarray() )
+    love.graphics.setLineWidth( self.h * love.window.getPixelScale() )
+    love.graphics.rectangle( "fill", 0, 0, self.w, self.h )
+    love.graphics.setCanvas()
+    love.graphics.pop()
 end
 
 function Laser:draw()
@@ -24,9 +44,8 @@ function Laser:draw()
     love.graphics.translate( self.pos.x, self.pos.y )
     love.graphics.rotate( self.dir:angle() )
 
-    love.graphics.setColor( self.color:toarray() )
-    love.graphics.setLineWidth( self.h * love.window.getPixelScale() )
-    love.graphics.rectangle( "fill", -self.w/2, -self.h/2, self.w, self.h )
+    love.graphics.draw( self.sprite, 0, 0 )
+
     if self.debugText ~= nil then
         love.graphics.setColor( 255, 255, 255 )
         love.graphics.printf( self.debugText, -self.w/2, -self.h*4, self.w, "left", 0, love.window.getPixelScale(), love.window.getPixelScale() )

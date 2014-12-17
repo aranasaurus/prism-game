@@ -48,36 +48,54 @@ function Player:new( x, y, joystick, color, shieldColorIndex, maxShields, maxHP 
         diedAt = 0,
         duration = 0,
         max_duration = 1.6,
-        rot = 0,
-        color = Color:new( "white" )
     }
+
+    p:loadSprite()
 
     return p
 end
 
-function Player:draw()
-    love.graphics.push()
-    love.graphics.translate( self.pos.x, self.pos.y )
+function Player:loadSprite( image )
+    if image then
+        self.sprite = image
+        return
+    end
 
+    self.sprite = love.graphics.newCanvas( self.w, self.h )
+    love.graphics.push()
+    love.graphics.setCanvas( self.sprite )
+    
+    local back = 0
+    local front = self.w - 4
+    local top = self.h/4
+    local bottom = self.h - self.h/4
+    love.graphics.polygon( "fill", back, top, front, self.h/2, back, bottom )
+
+    love.graphics.setCanvas()
+    love.graphics.pop()
+end
+
+function Player:draw()
     if self.dead then
-        love.graphics.scale( self.death.scale )
-        love.graphics.rotate( self.death.rot )
+        return
     else
-        love.graphics.rotate( self.rot )
+        love.graphics.push()
+        love.graphics.translate( self.pos.x, self.pos.y )
         love.graphics.setColor( self.shieldColor:toarray() )
         love.graphics.setLineWidth( 2 )
         local c = self.shieldColor:copy()
         c.a = math.max(c.a * (self.shields/self.maxShields)/1.8, 0)
         love.graphics.setColor( c:toarray() )
         love.graphics.circle( "fill", 0, 0, math.max(self.w, self.h)/2 + 4 )
+        love.graphics.pop()
     end
 
-    local back = -self.w/2
-    local front = self.w/2 - 4
-    local top = -self.h/4
-    local bottom = self.h/4
+    love.graphics.push()
+    love.graphics.origin()
+    love.graphics.translate( self.pos.x, self.pos.y )
+    love.graphics.rotate( self.rot )
     love.graphics.setColor( self.color:toarray() )
-    love.graphics.polygon( "fill", back, top, front, 0, back, bottom )
+    love.graphics.draw( self.sprite, -self.w/2, -self.h/2 )
 
     if self.debugText ~= nil then
         love.graphics.setColor( 255, 255, 255 )
@@ -90,8 +108,6 @@ function Player:update( dt )
     if self.dead then 
         self:explode()
         self.death.duration = love.timer.getTime() - self.death.diedAt
-        self.death.color.a = self.death.color.a - 84 * dt
-        self.death.rot = self.death.rot + math.pi * 1.66 * (3 + self.death.duration) * dt
 
         if self.death.duration > self.death.max_duration then
             reset()
