@@ -48,7 +48,10 @@ function KeyboardController:buttondown( button )
         self.player:nextShieldColor()
     elseif button == self.keymap.pause then
         PAUSED = not PAUSED
+    elseif button == self.keymap.flip then
+        self.flip = true
     end
+
 end
 
 function KeyboardController:buttonup( button )
@@ -63,6 +66,10 @@ function KeyboardController:buttonup( button )
             self.vel.y = 0
         end
     end
+
+    if button == self.keymap.flip then
+        self.flip = false
+    end
 end
 
 function KeyboardController:getVelocity()
@@ -75,10 +82,6 @@ function KeyboardController:getRotation( dt )
         rotMod = -1
     elseif love.keyboard.isDown( self.keymap.rot[2] ) then
         rotMod = 1
-    end
-
-    if not self.flip and love.keyboard.isDown( self.keymap.flip ) then
-        self.flip = true
     end
 
     local rot = self.player.rot + (rotMod * self.rotation_rate * dt)
