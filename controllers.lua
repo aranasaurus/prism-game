@@ -152,10 +152,10 @@ end
 
 function GamepadController:buttondown( button )
     if button == self.keymap.change_ship then
-        p1:nextColor()
+        self.player:nextColor()
     end
     if button == self.keymap.change_shield then
-        p1:nextShieldColor()
+        self.player:nextShieldColor()
     end
 
     if button == self.keymap.pause then
