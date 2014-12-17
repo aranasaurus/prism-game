@@ -14,7 +14,7 @@ local bg_sx = 1
 local bg_sy = 1
 local bg_index = 1
 local p1 = {}
-local paused = false
+local PAUSED = false
 lasers = {}
 effects = {}
 enemies = {}
@@ -70,7 +70,7 @@ end
 
 function love.update( dt )
     t = t + dt
-    if paused then return end
+    if PAUSED then return end
     p1:update( dt )
     updateLasers( dt )
     updateEffects( dt )
@@ -216,8 +216,8 @@ end
 --------------
 
 function love.joystickadded( joystick )
-    if p1.joystick == nil or not p1.joystick:isConnected() then
-        p1.joystick = joystick
+    if p1.controller.joystick == nil or not p1.controller.joystick:isConnected() then
+        p1.controller = GamepadController:new( p1, joystick, p1.controller.keymap )
     end
 end
 
@@ -228,27 +228,19 @@ function love.joystickremoved( joystick )
 end
 
 function love.keypressed( key )
-    if key == "q" then
-        p1:nextColor()
-    end
-
-    if key == "e" then
-        p1:nextShieldColor()
-    end
-
-    if key == " " then
-        paused = not paused
-    end
+    p1.controller:buttondown( key )
     if key == "\\" then
         colorTestRender = not colorTestRender
-        print( love.graphics.getLineStyle() )
-        print( love.graphics.getLineJoin() )
     end
 end
 
+function love.keyreleased( key )
+    p1.controller:buttonup( key )
+end
+
 function love.gamepadpressed( joystick, button )
-    if joystick ~= p1.joystick then
-        return
+    if joystick == p1.controller.joystick then
+        p1.controller:buttondown( button )
     end
 
     if button == "dpup" or button == "dpright" then
@@ -260,18 +252,12 @@ function love.gamepadpressed( joystick, button )
     if button == "back" then
         reset()
     end
+end
 
-    if button == "leftshoulder" then
-        p1:nextColor()
+function love.gamepadreleased( joystick, button )
+    if joystick == p1.joystick then
+        p1:buttonup( button )
     end
-    if button == "rightshoulder" then
-        p1:nextShieldColor()
-    end
-
-    if button == "start" then
-        paused = not paused
-    end
-
 end
 
 -------

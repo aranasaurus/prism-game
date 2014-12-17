@@ -1,6 +1,7 @@
 require "vector"
 require "laser"
 require "color"
+require "controllers"
 
 Player = {
     colors = { "red", "yellow", "blue" }
@@ -16,7 +17,11 @@ function Player:new( x, y, joystick, color, shieldColorIndex, maxShields, maxHP 
     p.rot = 0
     p.w = 48
     p.h = math.floor( p.w * 9/16 )
-    p.joystick = joystick
+    if joystick then
+        p.controller = GamepadController:new( p, joystick )
+    else
+        p.controller = KeyboardController:new( p )
+    end
     p.fireRate = 0.1 -- seconds
     p.lastFired = 0
     p.maxShields = maxShields or 8
@@ -95,59 +100,9 @@ function Player:update( dt )
     end
 
     -- Gather inputs
-    local leftInput = Vector:new( 0, 0 )
-    local r = self.rot
-    local firing = false
-
-    if self.joystick ~= nil then
-        leftInput.x, leftInput.y = self.joystick:getGamepadAxis( "leftx" ), self.joystick:getGamepadAxis( "lefty" )
-        local rightInput = Vector:new( self.joystick:getGamepadAxis( "rightx" ), self.joystick:getGamepadAxis( "righty" ) )
-
-        if leftInput:length() < DEAD_ZONE then
-            leftInput.x, leftInput.y = 0, 0
-        end
-
-        if rightInput:length() > DEAD_ZONE then
-            firing = true
-        end
-        r = rightInput:angle()
-    else
-        if love.keyboard.isDown( "w" ) then
-            leftInput.y = -0.9
-        end
-        if love.keyboard.isDown( "a" ) then
-            leftInput.x = -0.9
-        end
-        if love.keyboard.isDown( "s" ) then
-            leftInput.y = 0.9
-        end
-        if love.keyboard.isDown( "d" ) then
-            leftInput.x = 0.9
-        end
-
-        if love.keyboard.isDown( "up" ) then
-            firing = true
-        end
-        if love.keyboard.isDown( "left" ) then
-            r = r - math.pi/24
-        end
-        if love.keyboard.isDown( "right" ) then
-            r = r + math.pi / 24
-        end
-        if love.keyboard.isDown( "down" ) then
-            if not self.flipped then
-                r = r + math.pi
-                self.flipped = true
-            end
-        else
-            self.flipped = false
-        end
-    end
-
-    -- Update state with inputs
-    self.vel = leftInput:multiply( MAX_PLAYER_VEL * dt )
-    self.rot = r
-    self.pos = self.pos:add( self.vel )
+    self.rot = self.controller:getRotation( dt )
+    self.vel = self.controller:getVelocity()
+    self.pos = self.pos:add( self.vel:multiply( MAX_PLAYER_VEL * dt ) )
 
     -- Keep it on screen
     local sz = math.max( self.w, self.h )/2 + 4
@@ -157,7 +112,7 @@ function Player:update( dt )
     self.pos.y = math.max( self.pos.y, sz )
 
     local firedLaser = {}
-    if firing then
+    if self.controller:isFiring() then
         firedLaser = self:fire()
     end
     for i, l in ipairs( lasers ) do
