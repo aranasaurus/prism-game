@@ -21,30 +21,27 @@ function Laser:new( pos, dir, player )
     return l
 end
 
-function Laser:loadSprite( img )
-    if img then
-        self.sprite = img
-        return
+function Laser:loadSprite()
+    if not Laser.sprite then
+        Laser.sprite = love.graphics.newCanvas( self.w, self.h )
+
+        love.graphics.push()
+        love.graphics.origin()
+        love.graphics.setCanvas( Laser.sprite )
+        love.graphics.setColor( 255, 255, 255 )
+        love.graphics.setLineWidth( self.h * love.window.getPixelScale() )
+        love.graphics.rectangle( "fill", 0, 0, self.w, self.h )
+        love.graphics.setCanvas()
+        love.graphics.pop()
     end
-
-    self.sprite = love.graphics.newCanvas( self.w, self.h )
-
-    love.graphics.push()
-    love.graphics.origin()
-    love.graphics.setCanvas( self.sprite )
-    love.graphics.setColor( self.color:toarray() )
-    love.graphics.setLineWidth( self.h * love.window.getPixelScale() )
-    love.graphics.rectangle( "fill", 0, 0, self.w, self.h )
-    love.graphics.setCanvas()
-    love.graphics.pop()
 end
 
 function Laser:draw()
     love.graphics.push()
-    love.graphics.translate( self.pos.x, self.pos.y )
-    love.graphics.rotate( self.dir:angle() )
+    love.graphics.origin()
 
-    love.graphics.draw( self.sprite, 0, 0 )
+    love.graphics.setColor( self.color:toarray() )
+    love.graphics.draw( self.sprite, self.pos.x, self.pos.y, self.dir:angle() )
 
     if self.debugText ~= nil then
         love.graphics.setColor( 255, 255, 255 )
