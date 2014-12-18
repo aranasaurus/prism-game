@@ -18,6 +18,7 @@ function CreateBloomEffect(xsize, ysize)
    or not love.graphics.isSupported
    or not love.graphics.isSupported("shader")
    or not love.graphics.isSupported("canvas") then
+      print( "Shader support not detected. Rendering without the fancy graphics!" )
       return
    end
    

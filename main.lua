@@ -14,11 +14,11 @@ local bg_sx = 1
 local bg_sy = 1
 local bg_index = 1
 local p1 = {}
-local PAUSED = false
 lasers = {}
 effects = {}
 enemies = {}
 buffs = {}
+PAUSED = false
 
 -----------------
 -- Debug Stats --
@@ -132,6 +132,13 @@ function love.draw()
     love.graphics.circle( "line", p1.pos.x, p1.pos.y, p1.w/2 )
     bloom:postdraw()
 
+    if PAUSED then
+        love.graphics.origin()
+        local f = love.graphics.getFont()
+        love.graphics.setNewFont( 56 )
+        love.graphics.printf( "PAUSED", 0, H/2 - 42, W, "center" )
+        love.graphics.setFont( f )
+    end
 end
 
 ----------------
