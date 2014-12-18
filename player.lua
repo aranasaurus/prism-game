@@ -36,12 +36,10 @@ function Player:new( x, y, joystick, color, shieldColorIndex, maxShields, maxHP 
                 break
             end
         end
-
-        p.color = Color.colors[ color ]:copy()
     else
-        p:changeColor( color or 1 )
+        p:changeColor( color or love.math.random( 1, #Player.colors ) )
     end
-    p.shieldColorIndex = shieldColorIndex or 2
+    p.shieldColorIndex = shieldColorIndex or love.math.random( 1, #Player.colors )
     p:changeShieldColor( p.shieldColorIndex )
 
     p.death = {

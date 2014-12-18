@@ -175,7 +175,7 @@ end
 function createPlayer()
     local sticks = love.joystick.getJoysticks()
 
-    p1 = Player:new( W/2, H/2, sticks[1], p1.colorIndex, p1.shieldColorIndex )
+    p1 = Player:new( W/2, H/2, sticks[1], p1.colorIndex )
 end
 
 -------------
