@@ -78,16 +78,6 @@ end
 function Player:draw()
     if self.dead then
         return
-    else
-        love.graphics.push()
-        love.graphics.translate( self.pos.x, self.pos.y )
-        love.graphics.setColor( self.shieldColor:toarray() )
-        love.graphics.setLineWidth( 2 )
-        local c = self.shieldColor:copy()
-        c.a = math.max(c.a * (self.shields/self.maxShields)/1.8, 0)
-        love.graphics.setColor( c:toarray() )
-        love.graphics.circle( "fill", 0, 0, math.max(self.w, self.h)/2 + 4 )
-        love.graphics.pop()
     end
 
     love.graphics.push()
@@ -101,6 +91,26 @@ function Player:draw()
         love.graphics.setColor( 255, 255, 255 )
         love.graphics.printf( self.debugText, -self.w/2, -self.h*2, self.w * 8, "left", 0, love.window.getPixelScale(), love.window.getPixelScale() )
     end
+    love.graphics.pop()
+end
+
+function Player:drawShield()
+    love.graphics.push()
+    love.graphics.origin()
+    local c1 = self.shieldColor:copy()
+    local c2 = self.shieldColor:copy()
+    local shieldLevel = self.shields / self.maxShields
+
+    -- outer
+    c1.a = math.max( 0, math.min( 255, c1.a * shieldLevel * 3 ) )
+    love.graphics.setColor( c1:toarray() )
+    love.graphics.setLineWidth( 2 )
+    love.graphics.circle( "line", self.pos.x, self.pos.y, self.w/1.6 )
+
+    -- inner
+    c2.a = math.max( 0, math.min( 26, (c2.a / 8) * shieldLevel ) )
+    love.graphics.setColor( c2:toarray() )
+    love.graphics.circle( "fill", self.pos.x, self.pos.y, self.w/1.6 )
     love.graphics.pop()
 end
 

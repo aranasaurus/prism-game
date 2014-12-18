@@ -78,10 +78,16 @@ function love.load( arg )
     }
     loadBG( bg_index )
     reset()
-    bloom = CreateBloomEffect( W/4, H/4 )
-    bloom:setIntensity( 1, 2 )
-    bloom:setSaturation( 1, 2 )
-    bloom:setThreshold( 0.1 )
+
+    laserBloom = CreateBloomEffect( W/4, H/4 )
+    laserBloom:setIntensity( 1, 2 )
+    laserBloom:setSaturation( 1, 2 )
+    laserBloom:setThreshold( 0.1 )
+
+    shieldBloom = CreateBloomEffect( W/1, H/1 )
+    shieldBloom:setIntensity( 1, 2 )
+    shieldBloom:setSaturation( 1, 1.33 )
+    shieldBloom:setThreshold( 0.0 )
 
     love.graphics.setLineJoin( "miter" )
 end
@@ -138,17 +144,15 @@ function love.draw()
     love.graphics.draw( canvases.entities, 0, 0 )
     love.graphics.draw( canvases.effects, 0, 0 )
 
-    bloom:predraw()
-    bloom:enabledrawtobloom()
+    laserBloom:predraw()
+    laserBloom:enabledrawtobloom()
     love.graphics.draw( canvases.effects, 0, 0 )
+    laserBloom:postdraw()
 
-    local c = p1.shieldColor:toarray()
-    if p1.shields <= 0 then
-        c[4] = 0
-    end
-    love.graphics.setColor( c )
-    love.graphics.circle( "line", p1.pos.x, p1.pos.y, p1.w/2 )
-    bloom:postdraw()
+    shieldBloom:predraw()
+    shieldBloom:enabledrawtobloom()
+    p1:drawShield()
+    shieldBloom:postdraw()
 
     if PAUSED then
         love.graphics.origin()
