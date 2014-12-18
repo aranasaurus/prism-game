@@ -27,25 +27,43 @@ DEBUG = true
 local t = 0
 local lastUpdate = 0
 local updateInterval = 0.25
-local statsFmt = "FPS: %d\n MEM: %.1fKB"
-local memCount = collectgarbage( "count" )
+local statsFmt = "FPS: %d\n RT: %.3fms (%.3fms)\n MEM: %.1fKB (%.1fKB)"
+local memCounts = {collectgarbage( "count" )}
+local memIndex = 1
+local memCountsSize = 20
+local maxMem = 0
+local delta = 0
+local laserDebug = false
+local shieldDebug = false
 
 function drawStats()
+    love.graphics.push()
+    love.graphics.origin()
+    love.graphics.setColor( 255, 255, 255, 255 )
+    love.graphics.printf( "SCORE: "..string.gsub( tostring(p1.score), "^(-?%d+)(%d%d%d)", '%1,%2' ), W/2, 10, W/2 - 10, "right", 0, love.window.getPixelScale(), love.window.getPixelScale() )
+
     if DEBUG then
         if t - lastUpdate > updateInterval then
             lastUpdate = t
-            memCount = collectgarbage( "count" )
+
+            memIndex = memIndex + 1
+            if memIndex > memCountsSize then
+                memIndex = 1
+            end
+            memCounts[memIndex] = collectgarbage( "count" )
+            maxMem = 0
+            for i, v in ipairs(memCounts) do
+                maxMem = math.max( v, maxMem )
+            end
+            delta = love.timer.getDelta()*1000
         end
 
-        local stats = string.format(statsFmt, love.timer.getFPS(), memCount )
+        local stats = string.format(statsFmt, love.timer.getFPS(), delta, love.timer.getAverageDelta()*1000, memCounts[memIndex], maxMem )
 
-        love.graphics.push()
-        love.graphics.origin()
-        love.graphics.setColor( 255, 255, 255, 255 )
         love.graphics.printf( stats, 10, 10, W - 120, "left", 0, love.window.getPixelScale(), love.window.getPixelScale() )
-        love.graphics.printf( "SCORE: "..string.gsub( tostring(p1.score), "^(-?%d+)(%d%d%d)", '%1,%2' ), W/2, 10, W/2 - 10, "right", 0, love.window.getPixelScale(), love.window.getPixelScale() )
-        love.graphics.pop()
     end
+
+    love.graphics.pop()
 end
 
 ----------
@@ -236,8 +254,42 @@ end
 
 function love.keypressed( key )
     p1.controller:buttondown( key )
+
+    if not DEBUG then
+        return
+    end
+
     if key == "\\" then
         colorTestRender = not colorTestRender
+    end
+
+    if key == "[" then
+        laserDebug = not laserDebug
+        laserBloom:debugDraw( laserDebug )
+    end
+    if key == "]" then
+        shieldDebug = not shieldDebug
+        shieldBloom:debugDraw( shieldDebug )
+    end
+    if key == ";" then
+        p1.shields = p1.shields - 1
+    end
+    if key == "'" then
+        p1.shields = p1.shields + 1
+    end
+    if key == "/" then
+        p1.shields = p1.maxShields
+    end
+    if key == "=" then
+        p1.shields = 0
+        p1:die()
+    end
+
+    if key == "," then
+        prevBG()
+    end
+    if key == "." then
+        nextBG()
     end
 end
 
