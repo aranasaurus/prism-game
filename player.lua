@@ -12,8 +12,8 @@ function Player:new( x, y, joystick, color, shieldColorIndex, maxShields, maxHP 
     setmetatable( p, self )
     self.__index = self
 
-    p.pos = Vector:new( x, y )
-    p.vel = Vector:new( 0, 0 )
+    p.pos = vector( x, y )
+    p.vel = vector( 0, 0 )
     p.rot = 0
     p.w = 48
     p.h = math.floor( p.w * 9/16 )
@@ -45,7 +45,7 @@ function Player:new( x, y, joystick, color, shieldColorIndex, maxShields, maxHP 
     p.death = {
         diedAt = 0,
         duration = 0,
-        max_duration = 1.6,
+        max_duration = 1.33,
     }
 
     p:loadSprite()
@@ -126,7 +126,7 @@ function Player:update( dt )
     -- Gather inputs
     self.rot = self.controller:getRotation( dt )
     self.vel = self.controller:getVelocity()
-    self.pos = self.pos:add( self.vel:multiply( MAX_PLAYER_VEL * dt ) )
+    self.pos = self.pos + (self.vel * MAX_PLAYER_VEL * dt)
 
     -- Keep it on screen
     local sz = math.max( self.w, self.h )/2 + 4
@@ -178,8 +178,7 @@ end
 function Player:explode()
     if self.lastExplosion ~= nil and love.timer.getTime() - self.lastExplosion < 0.05 then return end
 
-    local density = 8 * (self.death.duration * 1.1)
-    local dec = 8
+    local density = 8 * math.asin(self.death.duration)
     local availableColors = {}
     for k, v in pairs( Color.colors ) do
         availableColors[ #availableColors+1 ] = k
@@ -188,15 +187,16 @@ function Player:explode()
         local c = Color.colors[ availableColors[ love.math.random( 1, #availableColors ) ] ]
         local len = love.math.random( 4, 12 )
         local dens = love.math.random( 8, 28 )
-        effects[#effects + 1] = Spark:new( self.pos, randomDir( Vector:new( 1, 0 ):rotate( self.rot ) ), c, dec, len, dens )
+        local dec = love.math.random( 1, 2 ) * love.math.random() * 0.5
+        effects[#effects + 1] = Spark:new( self.pos, randomDir( vector( 1, 0 ):rotate( self.rot ) ), c, dec, len, dens )
     end
     self.lastExplosion = love.timer.getTime()
 end
 
 function Player:fire()
     if self:canFire() then
-        local dir = Vector:new( self.w * 0.85, 0 ):rotate( self.rot )
-        local l = Laser:new( self.pos:add( dir ), dir, self )
+        local dir = vector( self.w * 0.85, 0 ):rotate( self.rot )
+        local l = Laser:new( self.pos + dir, dir, self )
         lasers[ #lasers + 1 ] = l
         self.lastFired = love.timer.getTime()
         return l
@@ -214,15 +214,15 @@ end
 function Player:collidingWithLaser( laser )
     local ls = laser:lineSegment()
 
-    if self.pos:subtract( ls[1] ):length() <= self.h then
+    if (self.pos - ls[1]):length() <= self.h then
         return true
     end
 
-    if self.pos:subtract( laser.pos ):length() <= self.h then
+    if (self.pos - laser.pos):length() <= self.h then
         return true
     end
 
-    if self.pos:subtract( ls[2] ):length() <= self.h then
+    if (self.pos - ls[2]):length() <= self.h then
         return true
     end
 

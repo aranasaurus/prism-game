@@ -68,7 +68,7 @@ function Laser:die( withEffects, color )
 end
 
 function Laser:update( dt, i )
-    self.pos = self.pos:add( self.dir:multiply( LASER_VEL * dt ) )
+    self.pos = self.pos + (self.dir * LASER_VEL * dt)
 
     for j, o in ipairs( lasers ) do
         -- All lasers except this one
@@ -90,16 +90,16 @@ function Laser:update( dt, i )
 
     -- Wall collisions
     if self.pos.x < 0 then
-        self.dir = self.dir:reflect( Vector:new( 1, 0 ) )
+        self.dir = self.dir:reflect( vector( 1, 0 ) )
         self.pos.x = math.max( self.pos.x, 0 )
     elseif self.pos.x > W then
-        self.dir = self.dir:reflect( Vector:new( -1, 0 ) )
+        self.dir = self.dir:reflect( vector( -1, 0 ) )
         self.pos.x = math.min( self.pos.x, W )
     elseif self.pos.y < 0 then
-        self.dir = self.dir:reflect( Vector:new( 0, 1 ) )
+        self.dir = self.dir:reflect( vector( 0, 1 ) )
         self.pos.y = math.max( self.pos.y, 0 )
     elseif self.pos.y > H then
-        self.dir = self.dir:reflect( Vector:new( 0, -1 ) )
+        self.dir = self.dir:reflect( vector( 0, -1 ) )
         self.pos.y = math.min( self.pos.y, H )
     end
 end
@@ -107,12 +107,12 @@ end
 function Laser:colliding( o )
     -- This collision detection is very sloppy, but it's good enough for now
     -- TODO: Make this more accurate
-    return o.pos:subtract( self.pos ):length() < self.w/2
+    return (o.pos - self.pos):length() < self.w/2
 end
 
 function Laser:lineSegment()
-    local hl = self.dir:multiply( self.w/2 )
-    return { self.pos:subtract( hl ), self.pos:add( hl ) }
+    local hl = self.dir * (self.w/2)
+    return { self.pos - hl, self.pos + hl }
 end
 
 function Laser:getDamage( c )

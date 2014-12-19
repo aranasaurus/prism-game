@@ -1,28 +1,48 @@
 Vector = {}
 
+function vector( x, y )
+    return Vector:new( x, y )
+end
+
 function Vector:new( x, y )
     local v = {}
     setmetatable( v, self )
     self.__index = self
+    self.__add = self.add
+    self.__sub = self.subtract
+    self.__mul = self.multiply
 
     v.x, v.y = x, y
     return v
 end
 
 function Vector:copy()
-    return Vector:new( self.x, self.y )
+    return vector( self.x, self.y )
 end
 
-function Vector:add( other )
-    return Vector:new( self.x + other.x, self.y + other.y )
+function Vector.add( a, b )
+    return vector( a.x + b.x, a.y + b.y )
 end
 
-function Vector:subtract( other )
-    return Vector:new( self.x - other.x, self.y - other.y )
+function Vector.subtract( a, b )
+    return vector( a.x - b.x, a.y - b.y )
 end
 
-function Vector:multiply( scl )
-    return Vector:new( self.x * scl, self.y * scl )
+function Vector.multiply( a, b )
+    if getmetatable( a ) == Vector and getmetatable( b ) == Vector then
+        return Vector.dot( a, b )
+    end
+
+    -- If we got to here then one of the params was not a vector, assume it's a scalar
+    local v = a
+    local scl = b
+    -- If a is the vector and b is not, then the above lines are correct. If b is a vector,
+    -- a must not be, so switch the assignment.
+    if getmetatable( b ) == Vector then
+        v = b
+        scl = a
+    end
+    return vector( v.x * scl, v.y * scl )
 end
 
 function Vector:length()
@@ -36,10 +56,10 @@ end
 function Vector:normalize()
     local l = self:length()
     if l == 0 then
-        return Vector:new( 0, 0 )
+        return vector( 0, 0 )
     end
 
-    return self:multiply( 1/l )
+    return self * (1/l)
 end
 
 function Vector:angle()
@@ -51,9 +71,9 @@ function Vector:dot( other )
 end
 
 function Vector:reflect( other )
-    local velNorm = other:multiply( self:dot( other ) )
-    velNorm = velNorm:multiply( 2 )
-    return self:subtract( velNorm )
+    local velNorm = other * ( self * other )
+    velNorm = velNorm * 2
+    return self - velNorm
 end
 
 function Vector:rotate( angle )
@@ -72,11 +92,11 @@ function Vector.isInsideHalfPlane( p, p0, dir )
 end
 
 function Vector:turnLeft()
-    return Vector:new( self.y, -self.x )
+    return vector( self.y, -self.x )
 end
 
 function Vector:turnRight()
-    return Vector:new( -self.y, self.x )
+    return vector( -self.y, self.x )
 end
 
 function Vector.linesIntersect( l1, l2 )

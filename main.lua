@@ -213,16 +213,23 @@ function drawEffects()
 end
 
 function updateEffects( dt )
-    local removables = {}
-    for i, e in ipairs( effects ) do
+    local i = 1
+    local sz = #effects
+    while i <= sz do
+        local e = effects[i]
         e:update( dt )
         if e.color.a <= 0 then
-            removables[#removables + 1] = i
+            -- pull the last effect in the list into this spot
+            effects[i] = effects[sz]
+            -- delete the previous reference to the last effect in the list
+            effects[sz] = nil
+            -- update the size
+            sz = sz - 1
+            -- next iteration will have the same i value and analyze the newly moved effect
+        else
+            -- keep this effect in the list, advance to the next.
+            i = i + 1
         end
-    end
-
-    for i = #removables, 1, -1 do
-        table.remove( effects, i )
     end
 end
 

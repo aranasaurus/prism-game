@@ -14,13 +14,13 @@ function Spark:new( pos, dir, color, decay, length, density )
     e.length = length or 6
     e.density = density or 12
     e.color = color:copy()
-    e.decay = decay or 255/45
+    e.decay = 255 / (decay or 0.77)
 
     e.sparks = {}
     local angle = (2 * math.pi) / e.density
     for i = 1, e.density do
         local s = {
-            pos = Vector:new( 0, 0 ),
+            pos = vector( 0, 0 ),
             vel = e.dir:rotate( angle * i ),
         }
 
@@ -30,9 +30,9 @@ function Spark:new( pos, dir, color, decay, length, density )
 end
 
 function Spark:update( dt )
-    self.color.a = self.color.a - self.decay
+    self.color.a = self.color.a - (self.decay * dt)
     for i, s in ipairs( self.sparks ) do
-        s.pos = s.pos:add( s.vel:multiply( LASER_VEL * 0.66 * dt ) )
+        s.pos = s.pos + (s.vel * (LASER_VEL * 0.66 * dt))
     end
 end
 
@@ -43,10 +43,11 @@ function Spark:draw()
     for i, s in ipairs( self.sparks ) do
         love.graphics.push()
 
+        local l = s.vel * self.length
+        local p1 = s.pos - l
+        local p2 = s.pos + l
+
         love.graphics.setColor( self.color:toarray() )
-        local l = s.vel:multiply( self.length )
-        local p1 = s.pos:subtract( l )
-        local p2 = s.pos:add( l )
         love.graphics.setLineWidth( 1 )
         love.graphics.line( p1.x, p1.y, p2.x, p2.y )
 
@@ -64,8 +65,8 @@ function FloatingText:new( text, color, startPos, endPos )
     e.text = text
     e.color = color:copy()
     e.pos = startPos:copy()
-    local endPos = endPos or startPos:add( Vector:new( 0, -240 ) )
-    e.vel = endPos:subtract( startPos )
+    local endPos = endPos or startPos + vector( 0, -240 )
+    e.vel = endPos - startPos
 
     return e
 end
@@ -81,12 +82,12 @@ function FloatingText:draw()
 end
 
 function FloatingText:update( dt )
-    self.pos = self.pos:add( self.vel:multiply( dt ) )
+    self.pos = self.pos + (self.vel * dt)
 end
 
 -----------
 -- Utils --
 -----------
 function randomDir( dir )
-    return dir:multiply( love.math.random() + 1 ):rotate( love.math.random() + 2 * math.pi )
+    return (dir * (love.math.random() + 1)):rotate( love.math.random() + 2 * math.pi )
 end
