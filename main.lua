@@ -1,3 +1,4 @@
+require "util"
 require "vector"
 require "player"
 require "laser"
@@ -218,11 +219,8 @@ function updateEffects( dt )
     while i <= sz do
         local e = effects[i]
         e:update( dt )
-        if e.color.a <= 0 then
-            -- pull the last effect in the list into this spot
-            effects[i] = effects[sz]
-            -- delete the previous reference to the last effect in the list
-            effects[sz] = nil
+        if love.timer.getTime() - e.t > e.duration then
+            removeAndReplace( effects, i, sz )
             -- update the size
             sz = sz - 1
             -- next iteration will have the same i value and analyze the newly moved effect

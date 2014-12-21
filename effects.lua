@@ -4,7 +4,7 @@ require "color"
 Spark = {}
 FloatingText = {}
 
-function Spark:new( pos, dir, color, decay, length, density )
+function Spark:new( pos, dir, color, decay, length, density, duration )
     local e = {}
     setmetatable( e, self )
     self.__index = self
@@ -15,6 +15,8 @@ function Spark:new( pos, dir, color, decay, length, density )
     e.density = density or 12
     e.color = color:copy()
     e.decay = 255 / (decay or 0.77)
+    e.duration = duration or 0.5
+    e.t = love.timer.getTime()
 
     e.sparks = {}
     local angle = (2 * math.pi) / e.density
@@ -22,6 +24,7 @@ function Spark:new( pos, dir, color, decay, length, density )
         local s = {
             pos = vector( 0, 0 ),
             vel = e.dir:rotate( angle * i ),
+            t = e.t
         }
 
         e.sparks[i] = s
@@ -67,6 +70,8 @@ function FloatingText:new( text, color, startPos, endPos )
     e.pos = startPos:copy()
     local endPos = endPos or startPos + vector( 0, -240 )
     e.vel = endPos - startPos
+    e.t = love.timer.getTime()
+    e.duration = 2
 
     return e
 end

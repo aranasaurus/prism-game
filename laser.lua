@@ -55,7 +55,8 @@ function Laser:die( withEffects, color )
     -- remove this laser from the lasers array
     for i, l in ipairs( lasers ) do
         if l == self then
-            table.remove( lasers, i )
+            removeAndReplace( lasers, i, nil, "lasers" )
+            break
         end
     end
 

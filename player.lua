@@ -188,7 +188,8 @@ function Player:explode()
         local len = love.math.random( 4, 12 )
         local dens = love.math.random( 8, 28 )
         local dec = love.math.random( 1, 2 ) * love.math.random() * 0.5
-        effects[#effects + 1] = Spark:new( self.pos, randomDir( vector( 1, 0 ):rotate( self.rot ) ), c, dec, len, dens )
+        local dur = 0.33
+        effects[#effects + 1] = Spark:new( self.pos, randomDir( vector( 1, 0 ):rotate( self.rot ) ), c, dec, len, dens, dur )
     end
     self.lastExplosion = love.timer.getTime()
 end
