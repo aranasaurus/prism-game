@@ -11,7 +11,11 @@ function Laser:new( pos, dir, player )
 
     l.pos = pos:copy()
     l.dir = dir:normalize()
-    l.color = player.color:combine( player.shieldColor )
+    if player.shields > 0 then
+        l.color = player.color:combine( player.shieldColor )
+    else
+        l.color = player.color:copy()
+    end
     l.w = 24
     l.h = 4
     l.player = player

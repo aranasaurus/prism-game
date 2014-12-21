@@ -141,23 +141,7 @@ function Player:update( dt )
     end
     for i, l in ipairs( lasers ) do
         if l ~= firedLaser and self:collidingWithLaser( l ) then
-            if self.shields > 0 then
-                -- take shield damage
-                if l.color.name ~= self.shieldColor.name then
-                    self.shields = self.shields - l:getDamage( self.shieldColor )
-                    l:die( true, l.color:combine( self.shieldColor ) )
-
-                    if self.shields < 1 and self.shieldColorIndex ~= self.colorIndex then
-                        self:changeShieldColor( self.colorIndex )
-                    end
-                end
-            else
-                -- take hp damage
-                if l.color.name ~= self.color.name then
-                    self.hp = self.hp - l:getDamage( self.color )
-                    l:die( true, l.color:combine( self.color ) )
-                end
-            end
+            self:takeDamage( l )
         end
 
         if self.hp <= 0 then
@@ -232,6 +216,31 @@ end
 
 function Player:addScore( s )
     self.score = self.score + s
+end
+
+function Player:takeDamage( src )
+    local dmg = 0
+    local effectColor = src.color:combine( self.shieldColor )
+    if self.shields > 0 then
+        -- take shield damage
+        if src.color.name ~= self.shieldColor.name then
+            dmg = src:getDamage( self.shieldColor )
+            self.shields = self.shields - dmg
+        end
+    else
+        -- take hp damage
+        effectColor = src.color:combine( self.color )
+        if src.color.name ~= self.color.name then
+            dmg = src:getDamage( self.color )
+            self.hp = self.hp - dmg
+        end
+    end
+
+    src:die( true, effectColor )
+    if dmg > 0 then
+        self:addScore( dmg )
+        effects[ #effects+1 ] = FloatingText:new( string.format( "+%d", dmg ), effectColor, src.pos )
+    end
 end
 
 function Player:changeColor( index )
