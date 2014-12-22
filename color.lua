@@ -88,12 +88,12 @@ function Color:copy()
 end
 
 Color.colors = {
-    red = Color:new( 255, 55, 0, 255, "red" ),
+    red = Color:new( 221, 50, 50, 255, "red" ),
     yellow = Color:new( 255, 221, 0, 255, "yellow" ),
-    orange = Color:new( 255, 155, 0, 255, "orange" ),
+    orange = Color:new( 255, 115, 10, 255, "orange" ),
     blue = Color:new( 0, 115, 255, 255, "blue" ),
     purple = Color:new( 170, 0, 255, 255, "purple" ),
-    green = Color:new( 0, 255, 21, 255, "green" ),
+    green = Color:new( 50, 215, 50, 255, "green" ),
     white = Color:new( 255, 255, 255, 255, "white" ),
     black = Color:new( 0, 0, 0, 255, "black" )
 }
