@@ -16,15 +16,20 @@ end
 function Color:toCMYK()
     local cmyk = { c = 0, y = 0, m = 0, k = 0 }
 
-    cmyk.c = 255 - self.r
-    cmyk.m = 255 - self.g
-    cmyk.y = 255 - self.b
+    cmyk.c = 1 - self.r
+    cmyk.m = 1 - self.g
+    cmyk.y = 1 - self.b
     cmyk.k = math.min( cmyk.c, cmyk.m, cmyk.y )
 
-    cmyk.c = ((cmyk.c - cmyk.k) / (255 - cmyk.k))
-    cmyk.m = ((cmyk.m - cmyk.k) / (255 - cmyk.k))
-    cmyk.y = ((cmyk.y - cmyk.k) / (255 - cmyk.k))
-    cmyk.k = cmyk.k/255
+    if cmyk.k == 1 then
+        cmyk.c = 0
+        cmyk.m = 0
+        cmyk.y = 0
+    else
+        cmyk.c = ((cmyk.c - cmyk.k) / (1 - cmyk.k))
+        cmyk.m = ((cmyk.m - cmyk.k) / (1 - cmyk.k))
+        cmyk.y = ((cmyk.y - cmyk.k) / (1 - cmyk.k))
+    end
 
     return cmyk
 end
@@ -32,7 +37,7 @@ end
 function Color.combine( first, second )
     if first.name == second.name then
         local c = first:copy()
-        c.a = math.min( 255, first.a + second.a )
+        c.a = math.min( 1, first.a + second.a )
         return c
     else
         if first.name == "red" then
@@ -72,11 +77,11 @@ function Color.combine( first, second )
     local r = cmyk.c * (1 - cmyk.k) + cmyk.k
     local g = cmyk.m * (1 - cmyk.k) + cmyk.k
     local b = cmyk.y * (1 - cmyk.k) + cmyk.k
-    r = math.ceil( (1 - r) * 255 )
-    g = math.ceil( (1 - g) * 255 )
-    b = math.ceil( (1 - b) * 255 )
+    r = math.ceil( 1 - r )
+    g = math.ceil( 1 - g )
+    b = math.ceil( 1 - b )
 
-    return Color:new( r, g, b, math.max( first.a or 255, second.a or 255 ) )
+    return Color:new( r, g, b, math.max( first.a or 1, second.a or 1 ) )
 end
 
 function Color:toarray()
@@ -88,13 +93,13 @@ function Color:copy()
 end
 
 Color.colors = {
-    red = Color:new( 221, 50, 50, 255, "red" ),
-    yellow = Color:new( 255, 221, 0, 255, "yellow" ),
-    orange = Color:new( 255, 115, 10, 255, "orange" ),
-    blue = Color:new( 0, 115, 255, 255, "blue" ),
-    purple = Color:new( 170, 0, 255, 255, "purple" ),
-    green = Color:new( 50, 215, 50, 255, "green" ),
-    white = Color:new( 255, 255, 255, 255, "white" ),
-    black = Color:new( 0, 0, 0, 255, "black" )
+    red = Color:new( 221/255, 50/255, 50/255, 1, "red" ),
+    yellow = Color:new( 1, 221/255, 0, 1, "yellow" ),
+    orange = Color:new( 1, 115/255, 10/255, 1, "orange" ),
+    blue = Color:new( 0, 115/255, 1, 1, "blue" ),
+    purple = Color:new( 170/255, 0, 1, 1, "purple" ),
+    green = Color:new( 50/255, 215/255, 50/255, 1, "green" ),
+    white = Color:new( 1, 1, 1, 1, "white" ),
+    black = Color:new( 0, 0, 0, 1, "black" )
 }
 

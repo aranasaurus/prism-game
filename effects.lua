@@ -14,7 +14,7 @@ function Spark:new( pos, dir, color, decay, length, density, duration )
     e.length = length or 6
     e.density = density or 12
     e.color = color:copy()
-    e.decay = 255 / (decay or 0.77)
+    e.decay = 1 / (decay or 0.77)
     e.duration = duration or 0.5
     e.t = love.timer.getTime()
 

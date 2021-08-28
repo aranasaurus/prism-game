@@ -3,7 +3,7 @@
 
 function love.conf( t )
     t.identity = "Prism"
-    t.version = "0.9.1"
+    t.version = "11.3"
     t.author = "@aranasaurus"
 
     t.window.highdpi = false

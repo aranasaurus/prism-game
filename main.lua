@@ -40,7 +40,7 @@ local shieldDebug = false
 function drawStats()
     love.graphics.push()
     love.graphics.origin()
-    love.graphics.setColor( 255, 255, 255, 255 )
+    love.graphics.setColor( 1, 1, 1, 1 )
     love.graphics.printf( "SCORE: "..string.gsub( tostring(p1.score), "^(-?%d+)(%d%d%d)", '%1,%2' ), W/2, 10, W/2 - 10, "right", 0, love.window.getDPIScale(), love.window.getDPIScale() )
 
     if DEBUG then
@@ -129,7 +129,7 @@ function love.draw()
         love.graphics.rectangle( "fill", 250, 250, w, h )
         love.graphics.setColor( Color.colors.green:toarray() )
         love.graphics.rectangle( "fill", 400, 250, w, h )
-        love.graphics.setColor( 255, 255, 255 )
+        love.graphics.setColor( 1, 1, 1 )
     end
     if colorTestRender then
         canvases.effects:renderTo( color_tests )
@@ -139,7 +139,7 @@ function love.draw()
     love.graphics.setCanvas()
     love.graphics.setBlendMode( "alpha" )
     love.graphics.setShader()
-    love.graphics.setColor( 255, 255, 255 )
+    love.graphics.setColor( 1, 1, 1 )
 
     drawBG()
     drawStats()
@@ -358,7 +358,7 @@ end
 
 function drawBG()
     love.graphics.draw( bg, 0, 0, 0, bg_sx, bg_sy )
-    love.graphics.setColor( 0, 0, 0, 255 * 0.58 )
+    love.graphics.setColor( 0, 0, 0, 0.58 )
     love.graphics.rectangle( "fill", 0, 0, W, H )
-    love.graphics.setColor( 255, 255, 255 )
+    love.graphics.setColor( 1, 1, 1 )
 end

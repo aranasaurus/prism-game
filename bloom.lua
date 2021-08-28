@@ -251,7 +251,7 @@ function CreateBloomEffect(xsize, ysize)
    
    -- call after drawing the stuff you want bloomed
    function bloom:postdraw()         
-      love.graphics.setColor(255, 255, 255)
+      love.graphics.setColor(1, 1, 1)
       local blendmode = love.graphics.getBlendMode()
       love.graphics.setBlendMode("alpha", "premultiplied")
       
@@ -284,7 +284,7 @@ function CreateBloomEffect(xsize, ysize)
       love.graphics.setShader()
       
       if debugdraw then
-         -- love.graphics.setColor(255, 255, 255, 128)
+         -- love.graphics.setColor(1, 1, 1, 0.5)
          love.graphics.draw(self.canvas.bloom, 0, 0)
          love.graphics.draw(self.canvas.blur_horiz, self.po2xsize+4, 0)
          love.graphics.draw(self.canvas.blur_vert, self.po2xsize*2+8, 0)

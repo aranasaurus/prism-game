@@ -86,7 +86,7 @@ function Player:draw()
     love.graphics.draw( self.sprite, -self.w/2, -self.h/2 )
 
     if self.debugText ~= nil then
-        love.graphics.setColor( 255, 255, 255 )
+        love.graphics.setColor( 1, 1, 1 )
         love.graphics.printf( self.debugText, -self.w/2, -self.h*2, self.w * 8, "left", 0, love.window.getDPIScale(), love.window.getDPIScale() )
     end
     love.graphics.pop()
@@ -100,7 +100,7 @@ function Player:drawShield()
     local shieldLevel = self.shields / self.maxShields
 
     -- outer
-    c1.a = math.max( 0, math.min( 255, c1.a * shieldLevel * 3 ) )
+    c1.a = math.max( 0, math.min( 1, c1.a * shieldLevel * 3 ) )
     love.graphics.setColor( c1:toarray() )
     love.graphics.setLineWidth( 2 )
     love.graphics.circle( "line", self.pos.x, self.pos.y, self.w/1.6 )
