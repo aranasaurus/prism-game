@@ -28,7 +28,7 @@ function KeyboardController:new( player, keymap )
     end
     c.rotation_rate = math.pi * 2
 
-    c.vel = vector( 0, 0 )
+    c.vel = Vector:new( 0, 0 )
 
     return c
 end
@@ -130,7 +130,7 @@ function GamepadController:new( player, joystick, keymap )
 end
 
 function GamepadController:getRotation( dt )
-    local rotInput = vector( self.joystick:getGamepadAxis( self.keymap.rot_h ), self.joystick:getGamepadAxis( self.keymap.rot_v ) )
+    local rotInput = Vector:new( self.joystick:getGamepadAxis( self.keymap.rot_h ), self.joystick:getGamepadAxis( self.keymap.rot_v ) )
     if rotInput:length() < DEAD_ZONE then
         return 0
     end
@@ -138,15 +138,15 @@ function GamepadController:getRotation( dt )
 end
 
 function GamepadController:getVelocity()
-    local velInput = vector( self.joystick:getGamepadAxis( self.keymap.vel_h ), self.joystick:getGamepadAxis( self.keymap.vel_v ) )
+    local velInput = Vector:new( self.joystick:getGamepadAxis( self.keymap.vel_h ), self.joystick:getGamepadAxis( self.keymap.vel_v ) )
     if velInput:length() < DEAD_ZONE then
-        return vector( 0, 0 )
+        return Vector:new( 0, 0 )
     end
     return velInput
 end
 
 function GamepadController:isFiring()
-    local rotInput = vector( self.joystick:getGamepadAxis( self.keymap.fire .. "x" ), self.joystick:getGamepadAxis( self.keymap.fire .. "y" ) )
+    local rotInput = Vector:new( self.joystick:getGamepadAxis( self.keymap.fire .. "x" ), self.joystick:getGamepadAxis( self.keymap.fire .. "y" ) )
     return rotInput:length() > DEAD_ZONE
 end
 

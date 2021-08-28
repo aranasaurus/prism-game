@@ -12,8 +12,8 @@ function Player:new( x, y, joystick, color, shieldColorIndex, maxShields, maxHP 
     setmetatable( p, self )
     self.__index = self
 
-    p.pos = vector( x, y )
-    p.vel = vector( 0, 0 )
+    p.pos = Vector:new( x, y )
+    p.vel = Vector:new( 0, 0 )
     p.rot = 0
     p.w = 48
     p.h = math.floor( p.w * 9/16 )
@@ -118,7 +118,7 @@ function Player:update( dt )
         self.death.duration = love.timer.getTime() - self.death.diedAt
 
         if self.death.duration > self.death.max_duration then
-            reset()
+            RESET()
         end
         return
     end
@@ -139,7 +139,7 @@ function Player:update( dt )
     if self.controller:isFiring() then
         firedLaser = self:fire()
     end
-    for i, l in ipairs( lasers ) do
+    for i, l in ipairs( LASERS ) do
         if l ~= firedLaser and self:collidingWithLaser( l ) then
             self:takeDamage( l )
         end
@@ -156,7 +156,7 @@ function Player:die()
     self.death.diedAt = love.timer.getTime()
     self.death.duration = 0
     self:explode()
-    lasers = {}
+    LASERS = {}
 end
 
 function Player:explode()
@@ -173,16 +173,16 @@ function Player:explode()
         local dens = love.math.random( 8, 28 )
         local dec = love.math.random( 1, 2 ) * love.math.random() * 0.5
         local dur = 0.33
-        effects[#effects + 1] = Spark:new( self.pos, randomDir( vector( 1, 0 ):rotate( self.rot ) ), c, dec, len, dens, dur )
+        EFFECTS[#EFFECTS + 1] = Spark:new( self.pos, randomDir( Vector:new( 1, 0 ):rotate( self.rot ) ), c, dec, len, dens, dur )
     end
     self.lastExplosion = love.timer.getTime()
 end
 
 function Player:fire()
     if self:canFire() then
-        local dir = vector( self.w * 0.85, 0 ):rotate( self.rot )
+        local dir = Vector:new( self.w * 0.85, 0 ):rotate( self.rot )
         local l = Laser:new( self.pos + dir, dir, self )
-        lasers[ #lasers + 1 ] = l
+        LASERS[ #LASERS + 1 ] = l
         self.lastFired = love.timer.getTime()
         return l
     end
@@ -239,7 +239,7 @@ function Player:takeDamage( src )
     src:die( true, effectColor )
     if dmg > 0 then
         self:addScore( dmg )
-        effects[ #effects+1 ] = FloatingText:new( string.format( "+%d", dmg ), effectColor, src.pos )
+        EFFECTS[ #EFFECTS+1 ] = FloatingText:new( string.format( "+%d", dmg ), effectColor, src.pos )
     end
 end
 

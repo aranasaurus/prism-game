@@ -22,7 +22,7 @@ function Spark:new( pos, dir, color, decay, length, density, duration )
     local angle = (2 * math.pi) / e.density
     for i = 1, e.density do
         local s = {
-            pos = vector( 0, 0 ),
+            pos = Vector:new( 0, 0 ),
             vel = e.dir:rotate( angle * i ),
             t = e.t
         }
@@ -68,8 +68,8 @@ function FloatingText:new( text, color, startPos, endPos )
     e.text = text
     e.color = color:copy()
     e.pos = startPos:copy()
-    local endPos = endPos or startPos + vector( 0, -240 )
-    e.vel = endPos - startPos
+    local guaranteedEndPos = endPos or startPos + Vector:new( 0, -240 )
+    e.vel = guaranteedEndPos - startPos
     e.t = love.timer.getTime()
     e.duration = 2
 

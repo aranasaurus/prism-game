@@ -15,10 +15,10 @@ local bg_sx = 1
 local bg_sy = 1
 local bg_index = 1
 local p1 = {}
-lasers = {}
-effects = {}
-enemies = {}
-buffs = {}
+LASERS = {}
+EFFECTS = {}
+ENEMIES = {}
+BUFFS = {}
 PAUSED = false
 
 -----------------
@@ -36,8 +36,10 @@ local maxMem = 0
 local delta = 0
 local laserDebug = false
 local shieldDebug = false
+local laserBloom = {}
+local shieldBloom = {}
 
-function drawStats()
+local function drawStats()
     love.graphics.push()
     love.graphics.origin()
     love.graphics.setColor( 1, 1, 1, 1 )
@@ -67,6 +69,120 @@ function drawStats()
     love.graphics.pop()
 end
 
+----------------
+-- Game Logic --
+----------------
+
+local function createPlayer()
+    local sticks = love.joystick.getJoysticks()
+
+    p1 = Player:new( W/2, H/2, sticks[1], p1.colorIndex )
+end
+
+function RESET()
+    createPlayer()
+    LASERS = {}
+end
+
+-------------
+-- Players --
+-------------
+
+local function drawPlayers()
+    p1:draw()
+end
+
+------------
+-- Lasers --
+------------
+
+local function drawLasers()
+    for _, l in pairs( LASERS ) do
+        l:draw()
+    end
+end
+
+local function updateLasers( dt )
+    for i, l in ipairs( LASERS ) do
+        l:update( dt, i )
+    end
+end
+
+-------------
+-- Effects --
+-------------
+
+local function drawEffects()
+    for _, e in pairs( EFFECTS ) do
+        e:draw()
+    end
+end
+
+local function updateEffects( dt )
+    local i = 1
+    local sz = #EFFECTS
+    while i <= sz do
+        local e = EFFECTS[i]
+        e:update( dt )
+        if love.timer.getTime() - e.t > e.duration then
+            Utils.removeAndReplace( EFFECTS, i, sz )
+            -- update the size
+            sz = sz - 1
+            -- next iteration will have the same i value and analyze the newly moved effect
+        else
+            -- keep this effect in the list, advance to the next.
+            i = i + 1
+        end
+    end
+end
+
+-------------
+-- Enemies --
+-------------
+
+local function drawEnemies()
+end
+
+-----------
+-- Buffs --
+-----------
+
+local function drawBuffs()
+end
+
+-------
+-- BG -
+-------
+
+local function loadBG()
+    bg = love.graphics.newImage( "res/bg"..bg_index..".png" )
+    bg_sx = W / bg:getWidth()
+    bg_sy = H / bg:getHeight()
+end
+
+local function nextBG()
+    bg_index = bg_index + 1
+    if bg_index > 5 then
+        bg_index = 1
+    end
+    loadBG()
+end
+
+local function prevBG()
+    bg_index = bg_index - 1
+    if bg_index < 1 then
+        bg_index = 5
+    end
+    loadBG()
+end
+
+local function drawBG()
+    love.graphics.draw( bg, 0, 0, 0, bg_sx, bg_sy )
+    love.graphics.setColor( 0, 0, 0, 0.58 )
+    love.graphics.rectangle( "fill", 0, 0, W, H )
+    love.graphics.setColor( 1, 1, 1 )
+end
+
 ----------
 -- Löve --
 ----------
@@ -78,14 +194,14 @@ function love.load( arg )
         entities = love.graphics.newCanvas()
     }
     loadBG( bg_index )
-    reset()
+    RESET()
 
     laserBloom = CreateBloomEffect( W/4, H/4 )
     laserBloom:setIntensity( 1, 2 )
     laserBloom:setSaturation( 1, 2 )
     laserBloom:setThreshold( 0.1 )
 
-    shieldBloom = CreateBloomEffect( W/1, H/1 )
+    shieldBloom = CreateBloomEffect( W, H )
     shieldBloom:setIntensity( 1, 2 )
     shieldBloom:setSaturation( 1, 1.33 )
     shieldBloom:setThreshold( 0.0 )
@@ -166,87 +282,6 @@ function love.draw()
     end
 end
 
-----------------
--- Game Logic --
-----------------
-
-function reset()
-    createPlayer()
-    lasers = {}
-end
-
-function createPlayer()
-    local sticks = love.joystick.getJoysticks()
-
-    p1 = Player:new( W/2, H/2, sticks[1], p1.colorIndex )
-end
-
--------------
--- Players --
--------------
-
-function drawPlayers()
-    p1:draw()
-end
-
-------------
--- Lasers --
-------------
-
-function drawLasers()
-    for _, l in pairs( lasers ) do
-        l:draw()
-    end
-end
-
-function updateLasers( dt )
-    for i, l in ipairs( lasers ) do
-        l:update( dt, i )
-    end
-end
-
--------------
--- Effects --
--------------
-
-function drawEffects()
-    for _, e in pairs( effects ) do
-        e:draw()
-    end
-end
-
-function updateEffects( dt )
-    local i = 1
-    local sz = #effects
-    while i <= sz do
-        local e = effects[i]
-        e:update( dt )
-        if love.timer.getTime() - e.t > e.duration then
-            removeAndReplace( effects, i, sz )
-            -- update the size
-            sz = sz - 1
-            -- next iteration will have the same i value and analyze the newly moved effect
-        else
-            -- keep this effect in the list, advance to the next.
-            i = i + 1
-        end
-    end
-end
-
--------------
--- Enemies --
--------------
-
-function drawEnemies()
-end
-
------------
--- Buffs --
------------
-
-function drawBuffs()
-end
-
 --------------
 -- Controls --
 --------------
@@ -320,7 +355,7 @@ function love.gamepadpressed( joystick, button )
     end
 
     if button == "back" then
-        reset()
+        RESET()
     end
 end
 
@@ -328,37 +363,4 @@ function love.gamepadreleased( joystick, button )
     if joystick == p1.joystick then
         p1:buttonup( button )
     end
-end
-
--------
--- BG -
--------
-
-function nextBG()
-    bg_index = bg_index + 1
-    if bg_index > 5 then
-        bg_index = 1
-    end
-    loadBG()
-end
-
-function prevBG()
-    bg_index = bg_index - 1
-    if bg_index < 1 then
-        bg_index = 5
-    end
-    loadBG()
-end
-
-function loadBG()
-    bg = love.graphics.newImage( "res/bg"..bg_index..".png" )
-    bg_sx = W / bg:getWidth()
-    bg_sy = H / bg:getHeight()
-end
-
-function drawBG()
-    love.graphics.draw( bg, 0, 0, 0, bg_sx, bg_sy )
-    love.graphics.setColor( 0, 0, 0, 0.58 )
-    love.graphics.rectangle( "fill", 0, 0, W, H )
-    love.graphics.setColor( 1, 1, 1 )
 end

@@ -1,6 +1,6 @@
 Vector = {}
 
-function vector( x, y )
+local function vector( x, y )
     return Vector:new( x, y )
 end
 

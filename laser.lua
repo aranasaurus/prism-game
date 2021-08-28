@@ -57,15 +57,15 @@ end
 
 function Laser:die( withEffects, color )
     -- remove this laser from the lasers array
-    for i, l in ipairs( lasers ) do
+    for i, l in ipairs( LASERS ) do
         if l == self then
-            removeAndReplace( lasers, i, nil, "lasers" )
+            Utils.removeAndReplace( LASERS, i, nil, "lasers" )
             break
         end
     end
 
     if withEffects then
-        effects[#effects + 1] = Spark:new( self.pos, self.dir, self.color:combine( color ) )
+        EFFECTS[#EFFECTS + 1] = Spark:new( self.pos, self.dir, self.color:combine( color ) )
         -- TODO: Sound effects?
     end
 
@@ -75,7 +75,7 @@ end
 function Laser:update( dt, i )
     self.pos = self.pos + (self.dir * LASER_VEL * dt)
 
-    for j, o in ipairs( lasers ) do
+    for j, o in ipairs( LASERS ) do
         -- All lasers except this one
         if i ~= j then
             if self:colliding( o ) then
@@ -84,7 +84,7 @@ function Laser:update( dt, i )
                     local s2 = o:getDamage( self.color )
                     self.player:addScore( s1 )
                     o.player:addScore( s2 )
-                    effects[ #effects+1 ] = FloatingText:new( "+".. s1 + s2, self.color:combine( o.color ), self.pos ) --, self.player.pos )
+                    EFFECTS[ #EFFECTS+1 ] = FloatingText:new( "+".. s1 + s2, self.color:combine( o.color ), self.pos ) --, self.player.pos )
                 end
                 self:die( true, o.color )
                 o:die()
@@ -95,16 +95,16 @@ function Laser:update( dt, i )
 
     -- Wall collisions
     if self.pos.x < 0 then
-        self.dir = self.dir:reflect( vector( 1, 0 ) )
+        self.dir = self.dir:reflect( Vector:new( 1, 0 ) )
         self.pos.x = math.max( self.pos.x, 0 )
     elseif self.pos.x > W then
-        self.dir = self.dir:reflect( vector( -1, 0 ) )
+        self.dir = self.dir:reflect( Vector:new( -1, 0 ) )
         self.pos.x = math.min( self.pos.x, W )
     elseif self.pos.y < 0 then
-        self.dir = self.dir:reflect( vector( 0, 1 ) )
+        self.dir = self.dir:reflect( Vector:new( 0, 1 ) )
         self.pos.y = math.max( self.pos.y, 0 )
     elseif self.pos.y > H then
-        self.dir = self.dir:reflect( vector( 0, -1 ) )
+        self.dir = self.dir:reflect( Vector:new( 0, -1 ) )
         self.pos.y = math.min( self.pos.y, H )
     end
 end
