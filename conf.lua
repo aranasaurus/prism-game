@@ -1,6 +1,3 @@
--- TODO: Re-enable this after I figure out if there's a version that runs on 0.11
--- require( "ext/cupid" )
-
 function love.conf( t )
     t.identity = "Prism"
     t.version = "11.3"
