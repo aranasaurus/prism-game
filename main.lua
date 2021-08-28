@@ -41,7 +41,7 @@ function drawStats()
     love.graphics.push()
     love.graphics.origin()
     love.graphics.setColor( 255, 255, 255, 255 )
-    love.graphics.printf( "SCORE: "..string.gsub( tostring(p1.score), "^(-?%d+)(%d%d%d)", '%1,%2' ), W/2, 10, W/2 - 10, "right", 0, love.window.getPixelScale(), love.window.getPixelScale() )
+    love.graphics.printf( "SCORE: "..string.gsub( tostring(p1.score), "^(-?%d+)(%d%d%d)", '%1,%2' ), W/2, 10, W/2 - 10, "right", 0, love.window.getDPIScale(), love.window.getDPIScale() )
 
     if DEBUG then
         if t - lastUpdate > updateInterval then
@@ -61,7 +61,7 @@ function drawStats()
 
         local stats = string.format(statsFmt, love.timer.getFPS(), delta, love.timer.getAverageDelta()*1000, memCounts[memIndex], maxMem )
 
-        love.graphics.printf( stats, 10, 10, W - 120, "left", 0, love.window.getPixelScale(), love.window.getPixelScale() )
+        love.graphics.printf( stats, 10, 10, W - 120, "left", 0, love.window.getDPIScale(), love.window.getDPIScale() )
     end
 
     love.graphics.pop()
@@ -72,7 +72,7 @@ end
 ----------
 
 function love.load( arg )
-    W, H = love.window.getDimensions()
+    W, H = love.graphics.getDimensions()
     canvases = {
         effects = love.graphics.newCanvas(),
         entities = love.graphics.newCanvas()
@@ -102,11 +102,13 @@ function love.update( dt )
 end
 
 function love.draw()
-    canvases.effects:clear()
-    canvases.entities:clear()
-
+    love.graphics.setCanvas(canvases.effects)
+    love.graphics.clear()
     canvases.effects:renderTo( drawLasers )
     canvases.effects:renderTo( drawEffects )
+
+    love.graphics.setCanvas(canvases.entities)
+    love.graphics.clear()
     canvases.entities:renderTo( drawEnemies )
     canvases.entities:renderTo( drawBuffs )
     canvases.entities:renderTo( drawPlayers )

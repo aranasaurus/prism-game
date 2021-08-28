@@ -7,7 +7,7 @@ local function FindSmallestPO2(num)
 end
 
 local function ScaleToPO2(xsize, ysize)
-   if love.graphics.isSupported("npot") then return xsize, ysize end
+   if love.graphics.getSupported("npot") then return xsize, ysize end
    return FindSmallestPO2(xsize), FindSmallestPO2(ysize)
 end
 
@@ -15,9 +15,9 @@ end
 -- smaller values make the bloom more apparent and give much better performance, but can make it look bad if too small
 function CreateBloomEffect(xsize, ysize) 
    if not love.graphics.newShader
-   or not love.graphics.isSupported
-   or not love.graphics.isSupported("shader")
-   or not love.graphics.isSupported("canvas") then
+   or not love.graphics.getSupported
+   or not love.graphics.getSupported("shader")
+   or not love.graphics.getSupported("canvas") then
       print( "Shader support not detected. Rendering without the fancy graphics!" )
       return
    end
@@ -180,8 +180,10 @@ function CreateBloomEffect(xsize, ysize)
       }
             
       for k,v in pairs(self.canvas) do
-         v:clear()
+         love.graphics.setCanvas(v)
+         love.graphics.clear()
       end
+      love.graphics.setCanvas()
       
       shaders.blur_horiz:send("canvas_w", self.po2xsize)
       shaders.blur_vert:send("canvas_h", self.po2ysize)
@@ -235,7 +237,8 @@ function CreateBloomEffect(xsize, ysize)
    -- call right before drawing the stuff you want bloomed
    function bloom:predraw()
       for k,v in pairs(self.canvas) do
-         v:clear()
+         love.graphics.setCanvas(v)
+         love.graphics.clear()
       end
       love.graphics.setCanvas(self.canvas.scene)
       
@@ -250,7 +253,7 @@ function CreateBloomEffect(xsize, ysize)
    function bloom:postdraw()         
       love.graphics.setColor(255, 255, 255)
       local blendmode = love.graphics.getBlendMode()
-      love.graphics.setBlendMode("premultiplied")
+      love.graphics.setBlendMode("alpha", "premultiplied")
       
       love.graphics.push()
       love.graphics.scale(self.po2xsize/self.po2xres, self.po2ysize/self.po2yres)

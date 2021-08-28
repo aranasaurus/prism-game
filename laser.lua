@@ -33,7 +33,7 @@ function Laser:loadSprite()
         love.graphics.origin()
         love.graphics.setCanvas( Laser.sprite )
         love.graphics.setColor( 255, 255, 255 )
-        love.graphics.setLineWidth( self.h * love.window.getPixelScale() )
+        love.graphics.setLineWidth( self.h * love.window.getDPIScale() )
         love.graphics.rectangle( "fill", 0, 0, self.w, self.h )
         love.graphics.setCanvas()
         love.graphics.pop()
@@ -49,7 +49,7 @@ function Laser:draw()
 
     if self.debugText ~= nil then
         love.graphics.setColor( 255, 255, 255 )
-        love.graphics.printf( self.debugText, -self.w/2, -self.h*4, self.w, "left", 0, love.window.getPixelScale(), love.window.getPixelScale() )
+        love.graphics.printf( self.debugText, -self.w/2, -self.h*4, self.w, "left", 0, love.window.getDPIScale(), love.window.getDPIScale() )
     end
 
     love.graphics.pop()

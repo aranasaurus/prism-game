@@ -87,7 +87,7 @@ function Player:draw()
 
     if self.debugText ~= nil then
         love.graphics.setColor( 255, 255, 255 )
-        love.graphics.printf( self.debugText, -self.w/2, -self.h*2, self.w * 8, "left", 0, love.window.getPixelScale(), love.window.getPixelScale() )
+        love.graphics.printf( self.debugText, -self.w/2, -self.h*2, self.w * 8, "left", 0, love.window.getDPIScale(), love.window.getDPIScale() )
     end
     love.graphics.pop()
 end
